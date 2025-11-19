@@ -73,14 +73,28 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
     setShareStatus(null);
 
     try {
-      // Wait a bit for images to load
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Wait for images to load
+      const img = shareCardRef.current.querySelector('img');
+      if (img) {
+        if (!img.complete) {
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            setTimeout(reject, 5000); // Timeout after 5s
+          });
+        }
+        // Additional wait for rendering
+        await new Promise(resolve => setTimeout(resolve, 300));
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
       
       const canvas = await html2canvas(shareCardRef.current, {
         useCORS: true,
         scale: 2,
         backgroundColor: '#1a73e8',
         logging: false,
+        allowTaint: false,
         width: 1080,
         height: 1350,
       });
@@ -257,8 +271,8 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
       </div>
 
       {/* Hidden Share Card for generating share image */}
-      <div className="fixed -left-[9999px] -top-[9999px] pointer-events-none opacity-0">
-        <div ref={shareCardRef}>
+      <div className="fixed left-0 top-0 w-[1080px] h-[1350px] pointer-events-none opacity-0 overflow-hidden" style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+        <div ref={shareCardRef} className="w-full h-full">
           <ShareCard certificate={certificate} template={template} />
         </div>
       </div>

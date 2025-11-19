@@ -44,11 +44,20 @@ const ShareModal: React.FC<ShareModalProps> = ({
     }
   };
 
+  const handleInstagramShare = async () => {
+    try {
+      await onShareToStories();
+      onClose();
+    } catch (error) {
+      console.error('Share failed:', error);
+    }
+  };
+
   const shareOptions = [
     {
       icon: Instagram,
       label: 'Stories',
-      action: onShareToStories,
+      action: handleInstagramShare,
       gradient: 'from-purple-500 via-pink-500 to-orange-500',
     },
     {

@@ -28,7 +28,7 @@ const Hero: React.FC = () => {
   return (
     <section 
       ref={containerRef}
-      className="relative min-h-[60vh] w-full flex items-center justify-center overflow-hidden bg-white dark:bg-[#121212] pt-24 pb-0 transition-colors duration-500"
+      className="relative min-h-[70vh] md:min-h-[60vh] w-full flex items-center justify-center overflow-hidden bg-white dark:bg-[#121212] pt-20 md:pt-24 pb-12 md:pb-0 transition-colors duration-500"
       style={{ perspective: '1000px' }}
     >
       {/* --- TECHNICAL GRID BACKGROUND (UNCHANGED) --- */}

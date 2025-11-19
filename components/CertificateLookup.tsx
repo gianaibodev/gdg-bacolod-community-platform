@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Certificate, CertificateTemplate } from '../types';
 import {
   getCertificateTemplates,
   getCertificateAttendeesByEvent,
   saveIssuedCertificate,
+  getIssuedCertificateById,
 } from '../services/mockCms';
 import PublicCertificateRenderer from './PublicCertificateRenderer';
 import { Loader2, Search, ShieldCheck, ArrowLeft, Home } from 'lucide-react';
@@ -19,10 +20,12 @@ const generateId = () => {
 };
 
 const CertificateLookup: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [templates, setTemplates] = useState<CertificateTemplate[]>([]);
   const [selectedEventId, setSelectedEventId] = useState('');
   const [fullName, setFullName] = useState('');
   const [loadingTemplates, setLoadingTemplates] = useState(true);
+  const [loadingCertificate, setLoadingCertificate] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [result, setResult] = useState<{ certificate: Certificate; template: CertificateTemplate } | null>(null);
@@ -42,6 +45,48 @@ const CertificateLookup: React.FC = () => {
     };
     load();
   }, []);
+
+  // Load certificate from URL if certId is present
+  useEffect(() => {
+    const certId = searchParams.get('certId');
+    if (certId && templates.length > 0) {
+      const loadCertificate = async () => {
+        setLoadingCertificate(true);
+        try {
+          const certificate = await getIssuedCertificateById(certId);
+          if (certificate) {
+            const template = templates.find(t => t.eventId === certificate.eventId);
+            if (template) {
+              setResult({ certificate, template });
+              setStatus({
+                type: 'success',
+                text: `Certificate loaded for ${certificate.recipientName}. Cert ID: ${certificate.uniqueId}`,
+              });
+            } else {
+              setStatus({
+                type: 'error',
+                text: 'Certificate template not found for this certificate.',
+              });
+            }
+          } else {
+            setStatus({
+              type: 'error',
+              text: 'Certificate not found. Please verify the certificate ID.',
+            });
+          }
+        } catch (error) {
+          console.error('Error loading certificate:', error);
+          setStatus({
+            type: 'error',
+            text: 'Failed to load certificate. Please try again.',
+          });
+        } finally {
+          setLoadingCertificate(false);
+        }
+      };
+      loadCertificate();
+    }
+  }, [searchParams, templates]);
 
   const handleLookup = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -139,14 +184,23 @@ const CertificateLookup: React.FC = () => {
           </p>
         </div>
 
-        <div className="bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 rounded-3xl shadow-xl p-6 md:p-8 space-y-6">
-          <form onSubmit={handleLookup} className="space-y-4">
+        {loadingCertificate && (
+          <div className="bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 rounded-3xl shadow-xl p-8 text-center">
+            <Loader2 size={32} className="animate-spin mx-auto mb-4 text-google-blue" />
+            <p className="text-slate-600 dark:text-slate-400">Loading certificate...</p>
+          </div>
+        )}
+
+        {!loadingCertificate && (
+          <div className="bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 rounded-3xl shadow-xl p-6 md:p-8 space-y-6">
+            <form onSubmit={handleLookup} className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label className="block text-sm font-semibold mb-1">Event</label>
                 <div className="relative">
                   <select
                     value={selectedEventId}
+                    style={{ fontSize: '16px' }}
                     onChange={e => setSelectedEventId(e.target.value)}
                     className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3 text-sm focus:border-google-blue focus:ring-2 focus:ring-google-blue/20 outline-none"
                   >
@@ -166,6 +220,7 @@ const CertificateLookup: React.FC = () => {
                 <input
                   type="text"
                   value={fullName}
+                  style={{ fontSize: '16px' }}
                   onChange={e => setFullName(e.target.value)}
                   placeholder="Juan Dela Cruz"
                   className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3 text-sm focus:border-google-blue focus:ring-2 focus:ring-google-blue/20 outline-none"
@@ -201,7 +256,8 @@ const CertificateLookup: React.FC = () => {
               recruiters or on your profiles.
             </div>
           </div>
-        </div>
+          </div>
+        )}
 
         {result && (
           <div className="mt-12">
