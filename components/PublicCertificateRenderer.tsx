@@ -146,27 +146,63 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
       const computedStyles = window.getComputedStyle(cardElement);
       const bgColor = computedStyles.backgroundColor || '#4285F4';
       
+      // Convert all computed styles to safe colors before html2canvas
+      const convertToSafeColors = (element: HTMLElement) => {
+        const computed = window.getComputedStyle(element);
+        const styles = element.style;
+        
+        // Convert background color
+        if (computed.backgroundColor && (computed.backgroundColor.includes('oklab') || computed.backgroundColor.includes('oklch'))) {
+          styles.backgroundColor = '#4285F4';
+        }
+        
+        // Convert color
+        if (computed.color && (computed.color.includes('oklab') || computed.color.includes('oklch'))) {
+          const textColor = computed.color.includes('white') || computed.color.includes('255') ? '#ffffff' : '#000000';
+          styles.color = textColor;
+        }
+        
+        // Convert border color
+        if (computed.borderColor && (computed.borderColor.includes('oklab') || computed.borderColor.includes('oklch'))) {
+          styles.borderColor = 'rgba(255, 255, 255, 0.2)';
+        }
+        
+        // Recursively process children
+        Array.from(element.children).forEach(child => {
+          convertToSafeColors(child as HTMLElement);
+        });
+      };
+      
+      convertToSafeColors(cardElement);
+      
       const canvas = await html2canvas(cardElement, {
         useCORS: true,
         scale: 2,
-        backgroundColor: '#4285F4', // Explicit hex color to avoid oklab parsing
+        backgroundColor: '#4285F4',
         logging: false,
         allowTaint: false,
         width: 1080,
         height: 1350,
         windowWidth: 1080,
         windowHeight: 1350,
-        onclone: (clonedDoc) => {
-          // Convert any oklab/oklch colors to hex in the cloned document
-          const clonedElement = clonedDoc.querySelector('[style*="background"]');
-          if (clonedElement) {
-            const style = window.getComputedStyle(cardElement);
-            const bgColor = style.backgroundColor;
-            if (bgColor && !bgColor.startsWith('#')) {
-              // If it's not hex, try to convert or use fallback
-              (clonedElement as HTMLElement).style.backgroundColor = '#4285F4';
+        onclone: (clonedDoc, element) => {
+          // Force convert all colors in cloned document
+          const allElements = clonedDoc.querySelectorAll('*');
+          allElements.forEach((el) => {
+            const htmlEl = el as HTMLElement;
+            const computed = window.getComputedStyle(htmlEl);
+            
+            // Replace any oklab/oklch colors with hex
+            if (computed.backgroundColor && (computed.backgroundColor.includes('oklab') || computed.backgroundColor.includes('oklch'))) {
+              htmlEl.style.backgroundColor = '#4285F4';
             }
-          }
+            if (computed.color && (computed.color.includes('oklab') || computed.color.includes('oklch'))) {
+              htmlEl.style.color = computed.color.includes('255') || computed.color.includes('white') ? '#ffffff' : '#000000';
+            }
+            if (computed.borderColor && (computed.borderColor.includes('oklab') || computed.borderColor.includes('oklch'))) {
+              htmlEl.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            }
+          });
         },
       });
       

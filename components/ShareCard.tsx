@@ -17,26 +17,36 @@ const ShareCard: React.FC<ShareCardProps> = ({ certificate, template }) => {
 
   return (
     <div 
-      className="relative w-[1080px] h-[1350px] flex flex-col items-center justify-center p-16 overflow-hidden"
       style={{
+        position: 'relative',
+        width: '1080px',
+        height: '1350px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '64px',
+        overflow: 'hidden',
         background: 'linear-gradient(to bottom right, #4285F4, #2563eb, #1e40af)',
       }}
     >
       {/* Background Pattern */}
-      <div className="absolute inset-0" style={{ opacity: 0.1 }}>
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 2px 2px, #ffffff 1px, transparent 0)`,
+      <div style={{ position: 'absolute', inset: '0', opacity: 0.1 }}>
+        <div style={{
+          position: 'absolute',
+          inset: '0',
+          backgroundImage: 'radial-gradient(circle at 2px 2px, #ffffff 1px, transparent 0)',
           backgroundSize: '40px 40px',
         }} />
       </div>
 
       {/* GDG Logo/Header */}
-      <div className="absolute top-12 left-0 right-0 flex justify-center z-10">
-        <div className="text-center">
-          <div className="text-sm font-semibold tracking-[0.3em] uppercase mb-2" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+      <div style={{ position: 'absolute', top: '48px', left: '0', right: '0', display: 'flex', justifyContent: 'center', zIndex: 10 }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '14px', fontWeight: 600, letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: '8px', color: 'rgba(255, 255, 255, 0.9)' }}>
             Google Developer Groups
           </div>
-          <div className="text-2xl font-black tracking-tight" style={{ color: '#ffffff' }}>
+          <div style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.025em', color: '#ffffff' }}>
             GDG Bacolod
           </div>
         </div>
@@ -44,8 +54,14 @@ const ShareCard: React.FC<ShareCardProps> = ({ certificate, template }) => {
 
       {/* Certificate Preview */}
       <div 
-        className="relative z-20 w-full max-w-[900px] aspect-[1.414/1] rounded-2xl overflow-hidden"
         style={{
+          position: 'relative',
+          zIndex: 20,
+          width: '100%',
+          maxWidth: '900px',
+          aspectRatio: '1.414 / 1',
+          borderRadius: '16px',
+          overflow: 'hidden',
           backgroundColor: '#ffffff',
           border: '4px solid rgba(255, 255, 255, 0.2)',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
@@ -54,14 +70,26 @@ const ShareCard: React.FC<ShareCardProps> = ({ certificate, template }) => {
         <img
           src={template.templateImageUrl}
           alt="Certificate"
-          className="absolute inset-0 w-full h-full object-cover"
+          style={{
+            position: 'absolute',
+            inset: '0',
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+          }}
           crossOrigin="anonymous"
           loading="eager"
           decoding="sync"
         />
         <div
-          className="absolute text-3xl font-black tracking-tight text-center px-8"
           style={{
+            position: 'absolute',
+            fontSize: '30px',
+            fontWeight: 900,
+            letterSpacing: '-0.025em',
+            textAlign: 'center',
+            paddingLeft: '32px',
+            paddingRight: '32px',
             color: template.textColor === 'white' ? '#ffffff' : '#0f172a',
             textShadow: template.textColor === 'white' 
               ? '0 2px 10px rgba(0,0,0,0.4)' 
@@ -76,30 +104,40 @@ const ShareCard: React.FC<ShareCardProps> = ({ certificate, template }) => {
       </div>
 
       {/* Event Info */}
-      <div className="absolute bottom-12 left-0 right-0 text-center z-10">
-        <div className="text-4xl font-black mb-3 tracking-tight" style={{ color: '#ffffff' }}>
+      <div style={{ position: 'absolute', bottom: '48px', left: '0', right: '0', textAlign: 'center', zIndex: 10 }}>
+        <div style={{ fontSize: '36px', fontWeight: 900, marginBottom: '12px', letterSpacing: '-0.025em', color: '#ffffff' }}>
           {certificate.eventName}
         </div>
-        <div className="text-lg font-semibold" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+        <div style={{ fontSize: '18px', fontWeight: 600, color: 'rgba(255, 255, 255, 0.8)' }}>
           Certificate of Participation
         </div>
-        <div className="text-sm font-medium mt-2" style={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+        <div style={{ fontSize: '14px', fontWeight: 500, marginTop: '8px', color: 'rgba(255, 255, 255, 0.6)' }}>
           {formattedDate}
         </div>
       </div>
 
       {/* Decorative Elements */}
       <div 
-        className="absolute top-0 left-0 w-64 h-64 rounded-full" 
         style={{ 
+          position: 'absolute',
+          top: '0',
+          left: '0',
+          width: '256px',
+          height: '256px',
+          borderRadius: '50%',
           backgroundColor: 'rgba(255, 255, 255, 0.05)',
           filter: 'blur(40px)',
           transform: 'translate(-50%, -50%)' 
         }} 
       />
       <div 
-        className="absolute bottom-0 right-0 w-96 h-96 rounded-full" 
         style={{ 
+          position: 'absolute',
+          bottom: '0',
+          right: '0',
+          width: '384px',
+          height: '384px',
+          borderRadius: '50%',
           backgroundColor: 'rgba(255, 255, 255, 0.05)',
           filter: 'blur(40px)',
           transform: 'translate(50%, 50%)' 
