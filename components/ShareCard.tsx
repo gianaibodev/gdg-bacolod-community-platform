@@ -85,10 +85,15 @@ const ShareCard: React.FC<ShareCardProps> = ({ certificate, template }) => {
             display: 'block',
             opacity: '1',
             visibility: 'visible',
+            backgroundColor: '#ffffff',
           }}
           crossOrigin="anonymous"
           loading="eager"
           decoding="sync"
+          onError={(e) => {
+            console.error('Image failed to load:', template.templateImageUrl);
+            (e.target as HTMLImageElement).style.backgroundColor = '#f0f0f0';
+          }}
         />
         <div
           style={{

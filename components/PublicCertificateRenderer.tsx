@@ -110,49 +110,78 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
       cardElement.style.opacity = '1';
       cardElement.style.zIndex = '9999';
       
-      // Preload the certificate image first
+      // Preload the certificate image first with CORS handling
       const imageLoader = new Image();
       imageLoader.crossOrigin = 'anonymous';
-      await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error('Image load timeout')), 15000);
+      
+      // Create a promise that resolves when image is fully loaded
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          console.error('Image preload timeout');
+          reject(new Error('Image load timeout'));
+        }, 20000);
+        
         imageLoader.onload = () => {
           clearTimeout(timeout);
-          resolve(null);
+          console.log('Image preloaded successfully');
+          resolve();
         };
-        imageLoader.onerror = () => {
+        
+        imageLoader.onerror = (err) => {
           clearTimeout(timeout);
+          console.error('Image preload error:', err);
           reject(new Error('Certificate image failed to load'));
         };
+        
+        // Set source after handlers are attached
         imageLoader.src = template.templateImageUrl;
       });
       
       // Wait for images to load in the ShareCard
       const img = cardElement.querySelector('img') as HTMLImageElement;
       if (img) {
-        // Set the image source to ensure it loads
-        img.src = template.templateImageUrl;
+        // Ensure the image element has the loaded source
+        if (img.src !== template.templateImageUrl) {
+          img.src = template.templateImageUrl;
+        }
         img.style.display = 'block';
         img.style.opacity = '1';
         img.style.visibility = 'visible';
+        img.style.backgroundColor = '#ffffff';
         
-        // Wait for the img element to load
+        // Wait for the img element to be fully rendered
         if (!img.complete || img.naturalWidth === 0) {
-          await new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => reject(new Error('Image element load timeout')), 10000);
-            img.onload = () => {
-              clearTimeout(timeout);
-              resolve(null);
+          await new Promise<void>((resolve, reject) => {
+            const timeout = setTimeout(() => {
+              console.error('Image element render timeout');
+              reject(new Error('Image element load timeout'));
+            }, 15000);
+            
+            const checkImage = () => {
+              if (img.complete && img.naturalWidth > 0) {
+                clearTimeout(timeout);
+                resolve();
+              }
             };
+            
+            img.onload = checkImage;
             img.onerror = () => {
               clearTimeout(timeout);
               reject(new Error('Image element failed to load'));
             };
+            
+            // If already loaded, resolve immediately
+            if (img.complete && img.naturalWidth > 0) {
+              clearTimeout(timeout);
+              resolve();
+            }
           });
         }
         
-        // Additional wait for rendering
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Additional wait for rendering and layout
+        await new Promise(resolve => setTimeout(resolve, 1000));
       } else {
+        console.warn('No image element found in ShareCard');
         await new Promise(resolve => setTimeout(resolve, 500));
       }
 
@@ -407,7 +436,7 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
         onDownloadPng={downloadPng}
         certificateName={certificate.recipientName}
         eventName={certificate.eventName}
-        certificateUrl={`${window.location.origin}/certificates?certId=${certificate.uniqueId}`}
+        certificateUrl={`${window.location.origin}/certificates/share/${certificate.uniqueId}`}
       />
     </div>
   );
