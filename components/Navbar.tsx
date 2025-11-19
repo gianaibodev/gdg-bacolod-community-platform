@@ -23,10 +23,11 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleTheme }) => {
   }, []);
 
   const navLinks = [
-    { name: 'About', href: '#about' },
-    { name: 'Moments', href: '#gallery' },
-    { name: 'Team', href: '#team' },
-  ];
+    { name: 'About', href: '#about', type: 'hash' },
+    { name: 'Moments', href: '#gallery', type: 'hash' },
+    { name: 'Team', href: '#team', type: 'hash' },
+    { name: 'Certificates', href: '/certificates', type: 'route' },
+  ] as const;
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-6 px-4 pointer-events-none">
@@ -63,16 +64,26 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleTheme }) => {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <HashLink
-              key={link.name}
-              smooth
-              to={`/${link.href}`}
-              className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors relative group/link"
-            >
-              {link.name}
-            </HashLink>
-          ))}
+          {navLinks.map(link =>
+            link.type === 'hash' ? (
+              <HashLink
+                key={link.name}
+                smooth
+                to={`/${link.href}`}
+                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors relative group/link"
+              >
+                {link.name}
+              </HashLink>
+            ) : (
+              <a
+                key={link.name}
+                href={link.href}
+                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors relative group/link"
+              >
+                {link.name}
+              </a>
+            ),
+          )}
           
           <div className={`w-px h-4 bg-slate-300 dark:bg-slate-700 mx-2 ${!scrolled && 'hidden'}`}></div>
           
@@ -119,7 +130,8 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleTheme }) => {
 
       {/* Mobile Dropdown Overlay */}
       <div className={`md:hidden fixed inset-0 bg-white/95 dark:bg-[#121212]/95 backdrop-blur-xl z-40 transition-all duration-500 pointer-events-auto flex flex-col justify-center items-center space-y-8 ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
-        {navLinks.map((link) => (
+        {navLinks.map(link =>
+          link.type === 'hash' ? (
             <HashLink
               key={link.name}
               smooth
@@ -129,7 +141,17 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleTheme }) => {
             >
               {link.name}
             </HashLink>
-          ))}
+          ) : (
+            <a
+              key={link.name}
+              href={link.href}
+              onClick={() => setIsOpen(false)}
+              className="text-3xl font-bold text-slate-900 dark:text-white hover:text-google-blue transition-colors"
+            >
+              {link.name}
+            </a>
+          ),
+        )}
           <a
             href="https://gdg.community.dev/gdg-bacolod/"
             target="_blank"

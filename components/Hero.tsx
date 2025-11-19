@@ -93,6 +93,13 @@ const Hero: React.FC = () => {
             <Sparkles size={20} className="text-google-yellow" />
             View Gallery
           </HashLink>
+
+          <a
+            href="/certificates"
+            className="px-8 py-4 bg-slate-900 text-white rounded-full font-medium text-lg hover:bg-slate-800 transition-all hover:shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto"
+          >
+            Claim Certificate
+          </a>
         </div>
 
       </div>
