@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -99,9 +98,10 @@ const CustomCursor: React.FC = () => {
   );
 };
 
-const Home: React.FC = () => {
+const Home: React.FC<{ darkMode: boolean; toggleTheme: () => void }> = ({ darkMode, toggleTheme }) => {
   return (
     <>
+      <Navbar darkMode={darkMode} toggleTheme={toggleTheme} />
       <main className="flex flex-col min-h-screen bg-white dark:bg-[#121212] overflow-hidden transition-colors duration-500">
         <Hero />
         <About />
@@ -150,9 +150,8 @@ const App: React.FC = () => {
     <Router>
       <CustomCursor />
       <div className={`font-sans text-slate-900 dark:text-slate-200 bg-white dark:bg-[#121212] relative animate-fade-in min-h-screen selection:bg-google-blue selection:text-white`}>
-        <Navbar darkMode={darkMode} toggleTheme={toggleTheme} />
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home darkMode={darkMode} toggleTheme={toggleTheme} />} />
           <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </div>

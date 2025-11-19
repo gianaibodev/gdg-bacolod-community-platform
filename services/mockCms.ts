@@ -1,4 +1,3 @@
-
 import { Event, TeamMember, Partner, SocialPost } from '../types';
 
 // INITIAL SEED DATA
@@ -100,7 +99,7 @@ const DEFAULT_TEAM: TeamMember[] = [
 
 const SOCIAL_POSTS: SocialPost[] = []; 
 
-const PARTNERS: Partner[] = [
+const DEFAULT_PARTNERS: Partner[] = [
   { id: 'p1', name: 'Google', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg', websiteUrl: 'https://developers.google.com', tier: 'Platinum' },
 ];
 
@@ -108,7 +107,8 @@ const PARTNERS: Partner[] = [
 
 const STORAGE_KEYS = {
   EVENTS: 'gdg_bacolod_events_v2',
-  TEAM: 'gdg_bacolod_team'
+  TEAM: 'gdg_bacolod_team',
+  PARTNERS: 'gdg_bacolod_partners'
 };
 
 const getStoredEvents = (): Event[] => {
@@ -123,6 +123,13 @@ const getStoredTeam = (): TeamMember[] => {
   if (stored) return JSON.parse(stored);
   localStorage.setItem(STORAGE_KEYS.TEAM, JSON.stringify(DEFAULT_TEAM));
   return DEFAULT_TEAM;
+};
+
+const getStoredPartners = (): Partner[] => {
+  const stored = localStorage.getItem(STORAGE_KEYS.PARTNERS);
+  if (stored) return JSON.parse(stored);
+  localStorage.setItem(STORAGE_KEYS.PARTNERS, JSON.stringify(DEFAULT_PARTNERS));
+  return DEFAULT_PARTNERS;
 };
 
 // --- PUBLIC API ---
@@ -150,7 +157,9 @@ export const getTeamMembers = async (): Promise<TeamMember[]> => {
 };
 
 export const getPartners = async (): Promise<Partner[]> => {
-  return PARTNERS;
+  return new Promise(resolve => {
+    setTimeout(() => resolve(getStoredPartners()), 500);
+  });
 };
 
 export const getSocialFeed = async (): Promise<SocialPost[]> => {
@@ -202,5 +211,26 @@ export const deleteTeamMember = async (id: string): Promise<void> => {
   const team = getStoredTeam();
   const filtered = team.filter(t => t.id !== id);
   localStorage.setItem(STORAGE_KEYS.TEAM, JSON.stringify(filtered));
+  return Promise.resolve();
+};
+
+export const savePartner = async (partner: Partner): Promise<void> => {
+  const partners = getStoredPartners();
+  const index = partners.findIndex(p => p.id === partner.id);
+  
+  if (index >= 0) {
+    partners[index] = partner;
+  } else {
+    partners.push(partner);
+  }
+  
+  localStorage.setItem(STORAGE_KEYS.PARTNERS, JSON.stringify(partners));
+  return Promise.resolve();
+};
+
+export const deletePartner = async (id: string): Promise<void> => {
+  const partners = getStoredPartners();
+  const filtered = partners.filter(p => p.id !== id);
+  localStorage.setItem(STORAGE_KEYS.PARTNERS, JSON.stringify(filtered));
   return Promise.resolve();
 };

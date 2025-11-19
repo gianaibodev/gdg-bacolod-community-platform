@@ -23,7 +23,7 @@ const Team: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-8">
             {[1,2,3,4,5].map(i => (
                <div key={i} className="animate-pulse flex flex-col items-center">
                  <div className="w-32 h-32 bg-slate-200 dark:bg-slate-800 rounded-full mb-4"></div>
@@ -32,15 +32,15 @@ const Team: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-12">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 md:gap-12">
             {team.map((member) => (
               <div key={member.id} className="group flex flex-col items-center text-center">
-                <div className="relative mb-6 w-40 h-40">
+                <div className="relative mb-4 md:mb-6 w-32 h-32 md:w-40 md:h-40">
                   <div className="absolute inset-0 bg-gradient-to-tr from-google-blue to-purple-500 rounded-full blur opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
                   <img 
                     src={member.photoUrl} 
                     alt={member.name} 
-                    className="w-full h-full rounded-full object-cover relative z-10 border-4 border-white dark:border-[#121212] grayscale group-hover:grayscale-0 transition-all duration-500"
+                    className="w-full h-full rounded-full object-cover relative z-10 border-4 border-white dark:border-[#121212] transition-all duration-500"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${member.name}&background=random`;
                     }}
@@ -48,7 +48,7 @@ const Team: React.FC = () => {
                 </div>
                 
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{member.name}</h3>
+                  <h3 className="text-sm md:text-lg font-bold text-slate-900 dark:text-white mb-1">{member.name}</h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider mb-3">{member.role}</p>
                 </div>
               </div>
