@@ -12,6 +12,7 @@ import SocialFeed from './components/SocialFeed';
 import Footer from './components/Footer';
 import AiAssistant from './components/AiAssistant';
 import AdminDashboard from './components/AdminDashboard';
+import CertificateLookup from './components/CertificateLookup';
 
 // Google Style Loading Screen (4 Dots)
 const LoadingScreen: React.FC = () => {
@@ -155,6 +156,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<Home darkMode={darkMode} toggleTheme={toggleTheme} />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/certificates" element={<CertificateLookup />} />
         </Routes>
       </div>
     </Router>

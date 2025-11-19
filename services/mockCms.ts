@@ -1,4 +1,12 @@
-import { Event, TeamMember, Partner, SocialPost } from '../types';
+import {
+  Event,
+  TeamMember,
+  Partner,
+  SocialPost,
+  CertificateTemplate,
+  CertificateAttendee,
+  Certificate,
+} from '../types';
 import { getCollection, saveDocument, deleteDocument } from './firebaseService';
 
 // INITIAL SEED DATA
@@ -104,6 +112,10 @@ const DEFAULT_PARTNERS: Partner[] = [
   { id: 'p1', name: 'Google', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg', websiteUrl: 'https://developers.google.com', tier: 'Platinum' },
 ];
 
+const DEFAULT_CERTIFICATE_TEMPLATES: CertificateTemplate[] = [];
+const DEFAULT_CERTIFICATE_ATTENDEES: CertificateAttendee[] = [];
+const DEFAULT_CERTIFICATES_ISSUED: Certificate[] = [];
+
 // --- PUBLIC API ---
 
 export const getUpcomingEvents = async (): Promise<Event[]> => {
@@ -156,4 +168,45 @@ export const savePartner = async (partner: Partner): Promise<void> => {
 
 export const deletePartner = async (id: string): Promise<void> => {
   await deleteDocument('partners', id);
+};
+
+// --- CERTIFICATES ---
+
+export const getCertificateTemplates = async (): Promise<CertificateTemplate[]> => {
+  return getCollection<CertificateTemplate>('certificate_templates', DEFAULT_CERTIFICATE_TEMPLATES);
+};
+
+export const saveCertificateTemplate = async (template: CertificateTemplate): Promise<void> => {
+  await saveDocument<CertificateTemplate>('certificate_templates', template);
+};
+
+export const deleteCertificateTemplate = async (id: string): Promise<void> => {
+  await deleteDocument('certificate_templates', id);
+};
+
+export const getCertificateAttendeesByEvent = async (eventId: string): Promise<CertificateAttendee[]> => {
+  const attendees = await getCollection<CertificateAttendee>('certificate_attendees', DEFAULT_CERTIFICATE_ATTENDEES);
+  return attendees.filter(att => att.eventId === eventId);
+};
+
+export const bulkSaveCertificateAttendees = async (
+  eventId: string,
+  attendees: CertificateAttendee[],
+): Promise<void> => {
+  const existing = await getCertificateAttendeesByEvent(eventId);
+  await Promise.all(existing.map(att => deleteDocument('certificate_attendees', att.id)));
+  await Promise.all(attendees.map(att => saveDocument<CertificateAttendee>('certificate_attendees', att)));
+};
+
+export const saveIssuedCertificate = async (certificate: Certificate): Promise<void> => {
+  const doc: Certificate = {
+    ...certificate,
+    id: certificate.uniqueId,
+  };
+  await saveDocument<Certificate>('certificates_issued', doc);
+};
+
+export const getIssuedCertificateById = async (uniqueId: string): Promise<Certificate | undefined> => {
+  const issued = await getCollection<Certificate>('certificates_issued', DEFAULT_CERTIFICATES_ISSUED);
+  return issued.find(cert => cert.uniqueId === uniqueId);
 };

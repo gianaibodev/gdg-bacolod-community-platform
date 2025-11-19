@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, doc, getDoc, setDoc, deleteDoc, getDocs, query } from 'firebase/firestore';
 import { Event, TeamMember, Partner } from './types';
+// Additional certificate types are not required directly here; collections are generic.
 
 // Firebase configuration - will use environment variables or defaults
 const firebaseConfig = {
@@ -34,7 +35,10 @@ try {
 const STORAGE_KEYS = {
   EVENTS: 'gdg_bacolod_events_v2',
   TEAM: 'gdg_bacolod_team',
-  PARTNERS: 'gdg_bacolod_partners'
+  PARTNERS: 'gdg_bacolod_partners',
+  certificate_templates: 'gdg_bacolod_certificate_templates',
+  certificate_attendees: 'gdg_bacolod_certificate_attendees',
+  certificates_issued: 'gdg_bacolod_certificates_issued',
 };
 
 const getLocalStorage = <T>(key: string, defaultValue: T): T => {

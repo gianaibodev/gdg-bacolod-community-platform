@@ -43,9 +43,30 @@ export interface SocialPost {
 // Represents a generated Certificate
 export interface Certificate {
   id: string;
+  uniqueId: string;
+  eventId?: string;
   eventName: string;
   recipientName: string;
   date: string; // ISO string or human-readable date
   theme: 'devfest' | 'io';
   pdfUrl?: string; // optional storage URL if persisted
+  pngUrl?: string; // optional storage URL if persisted
+}
+
+export interface CertificateTemplate {
+  id: string;
+  eventId: string;
+  eventName: string;
+  templateImageUrl: string;
+  theme: 'devfest' | 'io';
+  namePosition?: {
+    xPercent: number; // 0-100 relative position on canvas
+    yPercent: number;
+  };
+}
+
+export interface CertificateAttendee {
+  id: string;
+  eventId: string;
+  fullName: string;
 }

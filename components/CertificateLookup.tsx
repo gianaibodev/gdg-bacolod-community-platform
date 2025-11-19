@@ -1,0 +1,189 @@
+import React, { useEffect, useState } from 'react';
+import { Certificate, CertificateTemplate } from '../types';
+import {
+  getCertificateTemplates,
+  getCertificateAttendeesByEvent,
+  saveIssuedCertificate,
+} from '../services/mockCms';
+import PublicCertificateRenderer from './PublicCertificateRenderer';
+import { Loader2, Search, ShieldCheck } from 'lucide-react';
+
+const normalizeName = (value: string) => value.trim().replace(/\s+/g, ' ').toLowerCase();
+
+const generateId = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `cert-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+};
+
+const CertificateLookup: React.FC = () => {
+  const [templates, setTemplates] = useState<CertificateTemplate[]>([]);
+  const [selectedEventId, setSelectedEventId] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [loadingTemplates, setLoadingTemplates] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [result, setResult] = useState<{ certificate: Certificate; template: CertificateTemplate } | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoadingTemplates(true);
+      try {
+        const list = await getCertificateTemplates();
+        setTemplates(list);
+        if (list.length) {
+          setSelectedEventId(list[0].eventId);
+        }
+      } finally {
+        setLoadingTemplates(false);
+      }
+    };
+    load();
+  }, []);
+
+  const handleLookup = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!selectedEventId || !fullName.trim()) {
+      setStatus({ type: 'error', text: 'Please select an event and enter your full name.' });
+      return;
+    }
+
+    const template = templates.find(t => t.eventId === selectedEventId);
+    if (!template) {
+      setStatus({ type: 'error', text: 'Selected event is not available for certificates yet.' });
+      return;
+    }
+
+    setSubmitting(true);
+    setStatus(null);
+    setResult(null);
+    try {
+      const attendees = await getCertificateAttendeesByEvent(template.eventId);
+      const normalized = normalizeName(fullName);
+      const match = attendees.find(att => normalizeName(att.fullName) === normalized);
+
+      if (!match) {
+        setStatus({
+          type: 'error',
+          text: `We couldn't find a certificate for "${fullName}" in ${template.eventName}. Please double-check the spelling or reach out to the organizers.`,
+        });
+        return;
+      }
+
+      const uniqueId = generateId();
+      const certificate: Certificate = {
+        id: `${template.id}-${uniqueId}`,
+        uniqueId,
+        eventId: template.eventId,
+        eventName: template.eventName,
+        recipientName: match.fullName,
+        date: new Date().toISOString(),
+        theme: template.theme,
+      };
+
+      await saveIssuedCertificate(certificate);
+      setResult({ certificate, template });
+      setStatus({
+        type: 'success',
+        text: `Certificate ready for ${match.fullName}. Cert ID: ${uniqueId}`,
+      });
+    } catch (error) {
+      console.error(error);
+      setStatus({ type: 'error', text: 'Something went wrong while looking up your certificate.' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <section className="bg-white dark:bg-[#121212] min-h-screen text-slate-900 dark:text-slate-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="text-center mb-12">
+          <p className="text-xs font-bold tracking-[0.4em] uppercase text-google-blue mb-4">Certificates</p>
+          <h1 className="text-3xl md:text-5xl font-bold text-slate-900 dark:text-white mb-4">
+            Verify & Download Your Certificate
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+            Enter your full name and select the event you attended. We’ll verify it against the official attendee list
+            and render a certificate you can download as PDF or PNG.
+          </p>
+        </div>
+
+        <div className="bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 rounded-3xl shadow-xl p-6 md:p-8 space-y-6">
+          <form onSubmit={handleLookup} className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-sm font-semibold mb-1">Event</label>
+                <div className="relative">
+                  <select
+                    value={selectedEventId}
+                    onChange={e => setSelectedEventId(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3 text-sm focus:border-google-blue focus:ring-2 focus:ring-google-blue/20 outline-none"
+                  >
+                    {templates.map(template => (
+                      <option key={template.id} value={template.eventId}>
+                        {template.eventName}
+                      </option>
+                    ))}
+                  </select>
+                  {loadingTemplates && (
+                    <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-slate-400" />
+                  )}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Full Name</label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                  placeholder="Juan Dela Cruz"
+                  className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3 text-sm focus:border-google-blue focus:ring-2 focus:ring-google-blue/20 outline-none"
+                />
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={submitting || !templates.length}
+              className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 text-white px-6 py-3 text-sm font-semibold hover:bg-slate-800 disabled:opacity-60"
+            >
+              {submitting ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+              Find My Certificate
+            </button>
+          </form>
+
+          {status && (
+            <div
+              className={`rounded-2xl px-4 py-3 text-sm border ${
+                status.type === 'success'
+                  ? 'bg-green-50 text-green-800 border-green-200'
+                  : 'bg-red-50 text-red-800 border-red-200'
+              }`}
+            >
+              {status.text}
+            </div>
+          )}
+
+          <div className="bg-slate-50 dark:bg-slate-900/30 rounded-2xl p-4 flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+            <ShieldCheck className="text-google-blue" size={18} />
+            <div>
+              Certificates issued include a unique ID that can be verified later. Share the verification link with
+              recruiters or on your profiles.
+            </div>
+          </div>
+        </div>
+
+        {result && (
+          <div className="mt-12">
+            <PublicCertificateRenderer certificate={result.certificate} template={result.template} />
+          </div>
+        )}
+      </div>
+    </section>
+  );
+};
+
+export default CertificateLookup;
+
+

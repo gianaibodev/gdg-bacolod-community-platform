@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Event, TeamMember, Partner } from '../types';
+import { Event, TeamMember, Partner, CertificateTemplate, CertificateAttendee } from '../types';
 import * as CMS from '../services/mockCms';
 import {
   Trash2,
@@ -16,8 +16,42 @@ import {
   Menu,
   Award,
   FileText,
+  UploadCloud,
+  Loader2,
+  ImageIcon,
+  AlertCircle,
+  CheckCircle2,
+  FileSpreadsheet,
 } from 'lucide-react';
 import CertificateGenerator from './CertificateGenerator';
+import {
+  getCertificateTemplates,
+  saveCertificateTemplate,
+  deleteCertificateTemplate,
+  bulkSaveCertificateAttendees,
+} from '../services/mockCms';
+
+const AdminNavBar: React.FC = () => (
+  <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/70 dark:border-white/10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+      <a href="/" className="flex items-center gap-3 group">
+        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-google-blue via-google-red to-google-yellow text-white font-black flex items-center justify-center shadow-lg shadow-blue-500/30">
+          &lt;/&gt;
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-slate-500 tracking-[0.3em] uppercase">GDG Bacolod</p>
+          <p className="text-lg font-bold text-slate-900 dark:text-white">Admin Portal</p>
+        </div>
+      </a>
+      <a
+        href="/"
+        className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-white/20 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition"
+      >
+        Back to site
+      </a>
+    </div>
+  </header>
+);
 
 const AdminDashboard: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -37,8 +71,10 @@ const AdminDashboard: React.FC = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-        <div className="bg-white p-8 md:p-10 rounded-2xl md:rounded-3xl shadow-xl w-full max-w-md border border-slate-100">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#0B0B0F] flex flex-col">
+        <AdminNavBar />
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 p-8 md:p-10 rounded-2xl md:rounded-3xl shadow-xl w-full max-w-md border border-slate-100 dark:border-white/10">
           <div className="text-center mb-8 md:mb-10">
              <div className="w-14 h-14 md:w-16 md:h-16 bg-google-blue/10 rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6">
                 <LayoutDashboard className="text-google-blue" size={28} />
@@ -65,12 +101,15 @@ const AdminDashboard: React.FC = () => {
             </div>
           </form>
         </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex font-sans text-slate-900">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0B0F] flex flex-col font-sans text-slate-900">
+      <AdminNavBar />
+      <div className="flex flex-1">
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div 
@@ -175,10 +214,11 @@ const AdminDashboard: React.FC = () => {
             {activeTab === 'events' && <EventsManager />}
             {activeTab === 'team' && <TeamManager />}
             {activeTab === 'partners' && <PartnersManager />}
-            {activeTab === 'certificates' && <CertificateGenerator />}
+            {activeTab === 'certificates' && <CertificatesManager />}
           </div>
         </div>
       </main>
+      </div>
     </div>
   );
 };
@@ -629,6 +669,458 @@ const PartnersManager: React.FC = () => {
           </div>
         </>
       )}
+    </div>
+  );
+};
+
+const generateId = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `id-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+};
+
+const createEmptyTemplate = (): CertificateTemplate => ({
+  id: generateId(),
+  eventId: '',
+  eventName: '',
+  templateImageUrl: '',
+  theme: 'devfest',
+});
+
+const CertificatesManager: React.FC = () => {
+  const [templates, setTemplates] = useState<CertificateTemplate[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [formState, setFormState] = useState<CertificateTemplate>(createEmptyTemplate());
+  const [loading, setLoading] = useState(true);
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const [deletingTemplate, setDeletingTemplate] = useState(false);
+  const [uploadingCsv, setUploadingCsv] = useState(false);
+  const [csvPreview, setCsvPreview] = useState<CertificateAttendee[]>([]);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [csvMessage, setCsvMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  useEffect(() => {
+    loadTemplates();
+  }, []);
+
+  const loadTemplates = async () => {
+    setLoading(true);
+    try {
+      const list = await getCertificateTemplates();
+      setTemplates(list);
+      if (list.length && (!selectedId || !list.find(t => t.id === selectedId))) {
+        setSelectedId(list[0].id);
+        setFormState(list[0]);
+      } else if (!list.length) {
+        setSelectedId(null);
+        setFormState(createEmptyTemplate());
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: 'Failed to load templates.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSelectTemplate = (template: CertificateTemplate) => {
+    setSelectedId(template.id);
+    setFormState(template);
+    setCsvPreview([]);
+    setCsvMessage(null);
+  };
+
+  const handleCreateTemplate = () => {
+    const fresh = createEmptyTemplate();
+    setSelectedId(fresh.id);
+    setFormState(fresh);
+    setCsvPreview([]);
+    setCsvMessage(null);
+  };
+
+  const handleTemplateChange = (field: keyof CertificateTemplate, value: string) => {
+    setFormState(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSaveTemplate = async () => {
+    if (!formState.eventId.trim() || !formState.eventName.trim() || !formState.templateImageUrl.trim()) {
+      setMessage({ type: 'error', text: 'Event ID, Event Name, and Template URL are required.' });
+      return;
+    }
+
+    setSavingTemplate(true);
+    try {
+      await saveCertificateTemplate({
+        ...formState,
+        id: formState.id || generateId(),
+      });
+      setMessage({ type: 'success', text: 'Template saved successfully.' });
+      await loadTemplates();
+    } catch (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: 'Failed to save template.' });
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
+
+  const handleDeleteTemplate = async () => {
+    if (!selectedId) return;
+    if (!confirm('Delete this certificate template?')) return;
+    setDeletingTemplate(true);
+    try {
+      await deleteCertificateTemplate(selectedId);
+      setMessage({ type: 'success', text: 'Template deleted.' });
+      await loadTemplates();
+    } catch (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: 'Failed to delete template.' });
+    } finally {
+      setDeletingTemplate(false);
+    }
+  };
+
+  const parseCsvLine = (line: string) => {
+    const values: string[] = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        values.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    values.push(current.trim());
+    return values;
+  };
+
+  const handleCsvUpload = async (file: File) => {
+    if (!selectedId) {
+      setCsvMessage({ type: 'error', text: 'Select or create a template first.' });
+      return;
+    }
+    if (!formState.eventId.trim()) {
+      setCsvMessage({ type: 'error', text: 'Enter an Event ID before uploading attendees.' });
+      return;
+    }
+    setUploadingCsv(true);
+    setCsvMessage(null);
+    try {
+      const text = await file.text();
+      const lines = text.split(/\r?\n/).filter(line => line.trim().length);
+      if (!lines.length) {
+        setCsvMessage({ type: 'error', text: 'CSV appears to be empty.' });
+        return;
+      }
+      const header = parseCsvLine(lines[0]).map(h => h.toLowerCase());
+      const nameIndex = header.indexOf('full_name');
+      if (nameIndex === -1) {
+        setCsvMessage({ type: 'error', text: 'CSV must include a full_name column.' });
+        return;
+      }
+
+      const attendees: CertificateAttendee[] = [];
+
+      lines.slice(1).forEach((line, idx) => {
+        const cols = parseCsvLine(line);
+        const fullName = cols[nameIndex]?.replace(/^"|"$/g, '').trim();
+        if (fullName) {
+          attendees.push({
+            id: `${formState.eventId}-${Date.now()}-${idx}`,
+            eventId: formState.eventId,
+            fullName,
+          });
+        }
+      });
+
+      if (!attendees.length) {
+        setCsvMessage({ type: 'error', text: 'No attendee rows found after parsing.' });
+        return;
+      }
+
+      await bulkSaveCertificateAttendees(formState.eventId, attendees);
+      setCsvMessage({ type: 'success', text: `${attendees.length} attendees uploaded successfully.` });
+      setCsvPreview(attendees.slice(0, 5));
+    } catch (error) {
+      console.error(error);
+      setCsvMessage({ type: 'error', text: 'Failed to process CSV upload.' });
+    } finally {
+      setUploadingCsv(false);
+    }
+  };
+
+  return (
+    <div className="p-4 md:p-6 space-y-8">
+      <div className="grid gap-6 lg:grid-cols-[260px,1fr]">
+        <div className="bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-white/10 rounded-2xl p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-xs uppercase font-semibold tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                Templates
+              </p>
+              <p className="text-sm text-slate-600 dark:text-slate-300">Select an event</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleCreateTemplate}
+              className="inline-flex items-center gap-1.5 rounded-full bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold border border-slate-200 dark:border-white/10 shadow-sm hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <Plus size={14} />
+              New
+            </button>
+          </div>
+
+          {loading ? (
+            <div className="py-10 text-center text-slate-500 text-sm">Loading templates…</div>
+          ) : (
+            <div className="space-y-2 max-h-[360px] overflow-auto pr-1">
+              {templates.length === 0 && (
+                <p className="text-xs text-slate-500">
+                  No templates yet. Create one to get started.
+                </p>
+              )}
+              {templates.map(template => (
+                <button
+                  key={template.id}
+                  type="button"
+                  onClick={() => handleSelectTemplate(template)}
+                  className={`w-full text-left px-3 py-2 rounded-xl border text-sm transition ${
+                    selectedId === template.id
+                      ? 'border-google-blue bg-google-blue/5 text-google-blue font-semibold'
+                      : 'border-slate-200 hover:border-google-blue/40'
+                  }`}
+                >
+                  <p className="font-semibold">{template.eventName}</p>
+                  <p className="text-[0.7rem] uppercase tracking-wide text-slate-500">{template.eventId}</p>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 dark:border-white/10 p-4 md:p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Template details</h3>
+              <p className="text-sm text-slate-500">Manage the certificate design per event.</p>
+            </div>
+            {selectedId && templates.some(t => t.id === selectedId) && (
+              <button
+                type="button"
+                onClick={handleDeleteTemplate}
+                disabled={deletingTemplate}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 hover:text-red-500 disabled:opacity-50"
+              >
+                <Trash2 size={16} />
+                Delete
+              </button>
+            )}
+          </div>
+
+          {message && (
+            <div
+              className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm ${
+                message.type === 'success'
+                  ? 'bg-green-50 text-green-700 border border-green-100'
+                  : 'bg-red-50 text-red-700 border border-red-100'
+              }`}
+            >
+              {message.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+              {message.text}
+            </div>
+          )}
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Event ID (slug)</label>
+              <input
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-google-blue focus:ring-2 focus:ring-google-blue/20 outline-none"
+                placeholder="devfest-2024"
+                value={formState.eventId}
+                onChange={e => handleTemplateChange('eventId', e.target.value)}
+              />
+              <p className="text-xs text-slate-500 mt-1">Used for matching attendee CSV uploads.</p>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Event Name</label>
+              <input
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-google-blue focus:ring-2 focus:ring-google-blue/20 outline-none"
+                placeholder="DevFest Bacolod 2024"
+                value={formState.eventName}
+                onChange={e => handleTemplateChange('eventName', e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Template PNG URL</label>
+              <div className="flex gap-2">
+                <input
+                  className="flex-1 rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-google-blue focus:ring-2 focus:ring-google-blue/20 outline-none"
+                  placeholder="https://…/certificate.png"
+                  value={formState.templateImageUrl}
+                  onChange={e => handleTemplateChange('templateImageUrl', e.target.value)}
+                />
+              </div>
+              <p className="text-xs text-slate-500 mt-1">We will overlay participant names on this image.</p>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Theme</label>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleTemplateChange('theme', 'devfest')}
+                  className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold ${
+                    formState.theme === 'devfest'
+                      ? 'border-slate-900 bg-slate-900 text-white'
+                      : 'border-slate-200 hover:border-slate-400'
+                  }`}
+                >
+                  DevFest
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleTemplateChange('theme', 'io')}
+                  className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold ${
+                    formState.theme === 'io'
+                      ? 'border-google-blue bg-google-blue text-white'
+                      : 'border-slate-200 hover:border-slate-400'
+                  }`}
+                >
+                  I/O Extended
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleSaveTemplate}
+              disabled={savingTemplate}
+              className="inline-flex items-center gap-2 rounded-xl bg-google-blue text-white px-4 py-2.5 text-sm font-semibold shadow-lg shadow-blue-500/30 hover:bg-blue-600 disabled:opacity-60"
+            >
+              {savingTemplate && <Loader2 size={16} className="animate-spin" />}
+              Save template
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setFormState(prev => ({ ...prev, templateImageUrl: '', eventName: '', eventId: '' }));
+                setMessage(null);
+              }}
+              className="text-sm font-semibold text-slate-500 hover:text-slate-700"
+            >
+              Clear
+            </button>
+          </div>
+
+          {formState.templateImageUrl && (
+            <div className="mt-4 rounded-2xl border border-dashed border-slate-300 overflow-hidden">
+              <div className="bg-slate-100 text-slate-600 text-xs font-semibold tracking-[0.2em] uppercase px-4 py-2 flex items-center gap-2">
+                <ImageIcon size={14} />
+                Template preview
+              </div>
+              <div className="bg-white p-4">
+                <img
+                  src={formState.templateImageUrl}
+                  alt="Certificate template preview"
+                  className="w-full rounded-xl border border-slate-200"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 dark:border-white/10 p-4 md:p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="rounded-full bg-slate-900 text-white p-2">
+            <FileSpreadsheet size={18} />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Upload attendee CSV</h3>
+            <p className="text-sm text-slate-500">
+              CSV must include a <code className="font-mono">full_name</code> column. All rows apply to the selected event.
+            </p>
+          </div>
+        </div>
+
+        {csvMessage && (
+          <div
+            className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm ${
+              csvMessage.type === 'success'
+                ? 'bg-green-50 text-green-700 border border-green-100'
+                : 'bg-red-50 text-red-700 border border-red-100'
+            }`}
+          >
+            {csvMessage.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+            {csvMessage.text}
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center gap-3">
+          <label
+            className="inline-flex items-center gap-2 rounded-xl border border-dashed border-slate-300 px-4 py-2 text-sm font-semibold cursor-pointer hover:border-google-blue/50"
+          >
+            <UploadCloud size={16} />
+            {uploadingCsv ? 'Uploading…' : 'Select CSV'}
+            <input
+              type="file"
+              accept=".csv"
+              className="hidden"
+              onChange={e => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  handleCsvUpload(file);
+                  e.target.value = '';
+                }
+              }}
+            />
+          </label>
+          <span className="text-xs text-slate-500">
+            Example row: <code>"Juan Dela Cruz"</code>
+          </span>
+        </div>
+
+        {csvPreview.length > 0 && (
+          <div className="rounded-xl border border-slate-200 p-4">
+            <p className="text-sm font-semibold mb-2 text-slate-700">Preview (first {csvPreview.length} names)</p>
+            <ul className="text-sm text-slate-600 space-y-1">
+              {csvPreview.map(att => (
+                <li key={att.id} className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-google-blue inline-block" />
+                  {att.fullName}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
+        <div className="bg-slate-50 dark:bg-slate-900/40 px-4 py-2 flex items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase text-slate-500 dark:text-slate-400">
+          <FileText size={14} />
+          Live preview
+        </div>
+        <CertificateGenerator />
+      </div>
     </div>
   );
 };
