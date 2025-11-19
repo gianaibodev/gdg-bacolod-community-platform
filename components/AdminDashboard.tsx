@@ -982,33 +982,6 @@ const CertificatesManager: React.FC = () => {
               </div>
               <p className="text-xs text-slate-500 mt-1">We will overlay participant names on this image.</p>
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Theme</label>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleTemplateChange('theme', 'devfest')}
-                  className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold ${
-                    formState.theme === 'devfest'
-                      ? 'border-slate-900 bg-slate-900 text-white'
-                      : 'border-slate-200 hover:border-slate-400'
-                  }`}
-                >
-                  DevFest
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleTemplateChange('theme', 'io')}
-                  className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold ${
-                    formState.theme === 'io'
-                      ? 'border-google-blue bg-google-blue text-white'
-                      : 'border-slate-200 hover:border-slate-400'
-                  }`}
-                >
-                  I/O Extended
-                </button>
-              </div>
-            </div>
           </div>
 
           <div className="col-span-2">
@@ -1081,17 +1054,36 @@ const CertificatesManager: React.FC = () => {
           </div>
 
           {formState.templateImageUrl && (
-            <div className="mt-4 rounded-2xl border border-dashed border-slate-300 overflow-hidden">
-              <div className="bg-slate-100 text-slate-600 text-xs font-semibold tracking-[0.2em] uppercase px-4 py-2 flex items-center gap-2">
+            <div className="mt-4 rounded-2xl border border-slate-200 overflow-hidden bg-white">
+              <div className="bg-slate-50 text-slate-600 text-xs font-semibold tracking-[0.2em] uppercase px-4 py-2 flex items-center gap-2 border-b border-slate-200">
                 <ImageIcon size={14} />
-                Template preview
+                Live preview with sample name
               </div>
-              <div className="bg-white p-4">
-                <img
-                  src={formState.templateImageUrl}
-                  alt="Certificate template preview"
-                  className="w-full rounded-xl border border-slate-200"
-                />
+              <div className="p-4">
+                <div className="relative w-full max-w-2xl mx-auto aspect-[1.414/1] rounded-lg overflow-hidden border border-slate-200 shadow-lg">
+                  <img
+                    src={formState.templateImageUrl}
+                    alt="Certificate template"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div
+                    className={`absolute text-2xl md:text-4xl font-black tracking-tight text-center px-4 ${
+                      formState.textColor === 'white'
+                        ? 'text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.4)]'
+                        : 'text-slate-900 drop-shadow-[0_1px_6px_rgba(255,255,255,0.9)]'
+                    }`}
+                    style={{
+                      left: `${formState.namePosition?.x ?? 50}%`,
+                      top: `${formState.namePosition?.y ?? 50}%`,
+                      transform: 'translate(-50%, -50%)',
+                    }}
+                  >
+                    Sample Name
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500 mt-3 text-center">
+                  This is how names will appear on certificates. Adjust position and color above.
+                </p>
               </div>
             </div>
           )}

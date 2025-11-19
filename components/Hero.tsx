@@ -1,8 +1,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Code2, Cpu, Sparkles } from 'lucide-react';
+import { ArrowRight, Code2, Cpu } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { HashLink } from 'react-router-hash-link';
 
 const Hero: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -85,15 +84,6 @@ const Hero: React.FC = () => {
               Join Chapter <ArrowRight size={20} />
             </span>
           </a>
-          
-          <HashLink 
-            smooth
-            to="/#gallery"
-            className="px-8 py-4 bg-white dark:bg-transparent text-slate-700 dark:text-white border border-slate-200 dark:border-white/20 rounded-full font-medium text-lg hover:bg-slate-50 dark:hover:bg-white/10 transition-all hover:shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto"
-          >
-            <Sparkles size={20} className="text-google-yellow" />
-            View Gallery
-          </HashLink>
 
           <Link
             to="/certificates"

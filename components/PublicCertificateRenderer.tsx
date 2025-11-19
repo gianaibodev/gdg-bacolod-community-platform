@@ -3,6 +3,8 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { Certificate, CertificateTemplate } from '../types';
 import { ArrowDownToLine, Loader2, Share2 } from 'lucide-react';
+import ShareModal from './ShareModal';
+import ShareCard from './ShareCard';
 
 interface PublicCertificateRendererProps {
   certificate: Certificate;
@@ -11,9 +13,11 @@ interface PublicCertificateRendererProps {
 
 const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ certificate, template }) => {
   const previewRef = useRef<HTMLDivElement | null>(null);
+  const shareCardRef = useRef<HTMLDivElement | null>(null);
   const [downloading, setDownloading] = useState<'pdf' | 'png' | null>(null);
   const [shareStatus, setShareStatus] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const formattedDate = new Date(certificate.date).toLocaleDateString(undefined, {
     year: 'numeric',
@@ -64,16 +68,21 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
   };
 
   const handleShare = async () => {
-    if (!previewRef.current) return;
+    if (!shareCardRef.current) return;
     setSharing(true);
     setShareStatus(null);
 
     try {
-      const canvas = await html2canvas(previewRef.current, {
+      // Wait a bit for images to load
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const canvas = await html2canvas(shareCardRef.current, {
         useCORS: true,
         scale: 2,
-        backgroundColor: null,
+        backgroundColor: '#1a73e8',
         logging: false,
+        width: 1080,
+        height: 1350,
       });
 
       canvas.toBlob(async (blob) => {
@@ -234,12 +243,11 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
         </button>
         <button
           type="button"
-          onClick={handleShare}
-          disabled={sharing}
-          className="inline-flex items-center gap-2 rounded-full bg-google-blue text-white px-5 py-2 text-sm font-semibold shadow hover:bg-blue-600 disabled:opacity-70"
+          onClick={() => setShowShareModal(true)}
+          className="inline-flex items-center gap-2 rounded-full bg-google-blue text-white px-5 py-2 text-sm font-semibold shadow hover:bg-blue-600 transition-colors"
         >
-          {sharing ? <Loader2 size={16} className="animate-spin" /> : <Share2 size={16} />}
-          Share to Stories
+          <Share2 size={16} />
+          Share
         </button>
       </div>
 
@@ -247,6 +255,23 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
         Issued on {formattedDate}.
         {shareStatus && <span className="block mt-1 font-semibold text-google-blue">{shareStatus}</span>}
       </div>
+
+      {/* Hidden Share Card for generating share image */}
+      <div className="fixed -left-[9999px] -top-[9999px] pointer-events-none opacity-0">
+        <div ref={shareCardRef}>
+          <ShareCard certificate={certificate} template={template} />
+        </div>
+      </div>
+
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        onShareToStories={handleShare}
+        onDownloadPng={downloadPng}
+        certificateName={certificate.recipientName}
+        eventName={certificate.eventName}
+        certificateUrl={`${window.location.origin}/certificates?certId=${certificate.uniqueId}`}
+      />
     </div>
   );
 };
