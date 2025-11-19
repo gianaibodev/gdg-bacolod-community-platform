@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Download, Share2 } from 'lucide-react';
+import { ArrowLeft, Moon, Sun } from 'lucide-react';
 import { getIssuedCertificateById, getCertificateTemplates } from '../services/mockCms';
 import { Certificate, CertificateTemplate } from '../types';
-import PublicCertificateRenderer from './PublicCertificateRenderer';
 
 const CertificateSharePage: React.FC = () => {
   const { certId } = useParams<{ certId: string }>();
@@ -11,6 +10,34 @@ const CertificateSharePage: React.FC = () => {
   const [certificate, setCertificate] = useState<Certificate | null>(null);
   const [template, setTemplate] = useState<CertificateTemplate | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Handle Dark Mode
+  useEffect(() => {
+    // Check localStorage or system preference
+    const saved = localStorage.getItem('darkMode');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = saved ? saved === 'true' : prefersDark;
+    setDarkMode(isDark);
+    
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', String(newDarkMode));
+    
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
 
   // Debug logging
   useEffect(() => {
@@ -175,19 +202,28 @@ const CertificateSharePage: React.FC = () => {
               <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
               <span className="font-semibold">Back to Home</span>
             </Link>
-            <Link
-              to="/"
-              className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-            >
-              <img
-                src="https://i.postimg.cc/7CnMJDwq/GDG-Bacolod.png"
-                alt="GDG Bacolod"
-                className="h-8 w-auto object-contain dark:brightness-0 dark:invert"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            </Link>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                aria-label="Toggle dark mode"
+              >
+                {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
+              <Link
+                to="/"
+                className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+              >
+                <img
+                  src="https://i.postimg.cc/7CnMJDwq/GDG-Bacolod.png"
+                  alt="GDG Bacolod"
+                  className="h-8 w-auto object-contain dark:brightness-0 dark:invert"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </Link>
+            </div>
           </div>
         </div>
       </header>
@@ -266,21 +302,6 @@ const CertificateSharePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Full Certificate View */}
-        <div className="mb-12">
-          <div className="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-2xl p-6 md:p-12 border border-slate-200 dark:border-slate-700 overflow-hidden">
-            {/* Decorative gradient overlay */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-google-blue via-google-red to-google-yellow"></div>
-            
-            <div className="mb-6 text-center relative z-10">
-              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-2">View Full Certificate</h2>
-              <p className="text-slate-600 dark:text-slate-400">Download as PNG or PDF</p>
-            </div>
-            <div className="relative z-10">
-              <PublicCertificateRenderer certificate={certificate} template={template} />
-            </div>
-          </div>
-        </div>
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

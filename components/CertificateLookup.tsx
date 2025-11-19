@@ -8,7 +8,7 @@ import {
   getIssuedCertificateById,
 } from '../services/mockCms';
 import PublicCertificateRenderer from './PublicCertificateRenderer';
-import { Loader2, Search, ShieldCheck, ArrowLeft, Home } from 'lucide-react';
+import { Loader2, Search, ShieldCheck, ArrowLeft, Moon, Sun } from 'lucide-react';
 
 const normalizeName = (value: string) => value.trim().replace(/\s+/g, ' ').toLowerCase();
 
@@ -30,6 +30,33 @@ const CertificateLookup: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [result, setResult] = useState<{ certificate: Certificate; template: CertificateTemplate } | null>(null);
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Handle Dark Mode
+  useEffect(() => {
+    const saved = localStorage.getItem('darkMode');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = saved ? saved === 'true' : prefersDark;
+    setDarkMode(isDark);
+    
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', String(newDarkMode));
+    
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
 
   // Redirect to share page if certId is present in query params (do this FIRST)
   useEffect(() => {
@@ -129,19 +156,28 @@ const CertificateLookup: React.FC = () => {
               <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
               <span className="font-semibold">Back to Home</span>
             </Link>
-            <Link
-              to="/"
-              className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-            >
-              <img
-                src="https://i.postimg.cc/7CnMJDwq/GDG-Bacolod.png"
-                alt="GDG Bacolod"
-                className="h-8 w-auto object-contain dark:brightness-0 dark:invert"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            </Link>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                aria-label="Toggle dark mode"
+              >
+                {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
+              <Link
+                to="/"
+                className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+              >
+                <img
+                  src="https://i.postimg.cc/7CnMJDwq/GDG-Bacolod.png"
+                  alt="GDG Bacolod"
+                  className="h-8 w-auto object-contain dark:brightness-0 dark:invert"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </Link>
+            </div>
           </div>
         </div>
       </header>
