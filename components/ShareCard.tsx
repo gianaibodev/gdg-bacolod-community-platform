@@ -44,6 +44,8 @@ const ShareCard: React.FC<ShareCardProps> = ({ certificate, template }) => {
           alt="Certificate"
           className="absolute inset-0 w-full h-full object-cover"
           crossOrigin="anonymous"
+          loading="eager"
+          decoding="sync"
         />
         <div
           className={`absolute text-3xl font-black tracking-tight text-center px-8 ${

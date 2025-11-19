@@ -68,36 +68,88 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
   };
 
   const handleShare = async () => {
-    if (!shareCardRef.current) return;
+    if (!shareCardRef.current) {
+      setShareStatus('Error: Share card element not found.');
+      return;
+    }
     setSharing(true);
     setShareStatus(null);
 
     try {
+      const cardElement = shareCardRef.current;
+      
+      // Make element temporarily visible for html2canvas (but keep it off-screen)
+      const originalStyle = {
+        position: cardElement.style.position,
+        left: cardElement.style.left,
+        top: cardElement.style.top,
+        opacity: cardElement.style.opacity,
+        visibility: cardElement.style.visibility,
+        zIndex: cardElement.style.zIndex,
+      };
+      
+      // Position it off-screen but visible to html2canvas
+      cardElement.style.position = 'fixed';
+      cardElement.style.left = '0';
+      cardElement.style.top = '0';
+      cardElement.style.opacity = '1';
+      cardElement.style.visibility = 'visible';
+      cardElement.style.zIndex = '9999';
+      
       // Wait for images to load
-      const img = shareCardRef.current.querySelector('img');
+      const img = cardElement.querySelector('img') as HTMLImageElement;
       if (img) {
-        if (!img.complete) {
+        if (!img.complete || img.naturalWidth === 0) {
           await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-            setTimeout(reject, 5000); // Timeout after 5s
+            const timeout = setTimeout(() => {
+              reject(new Error('Image load timeout'));
+            }, 10000);
+            
+            img.onload = () => {
+              clearTimeout(timeout);
+              resolve(null);
+            };
+            img.onerror = () => {
+              clearTimeout(timeout);
+              reject(new Error('Image failed to load'));
+            };
+            
+            // Force reload if already loaded but broken
+            if (img.complete && img.naturalWidth === 0) {
+              const src = img.src;
+              img.src = '';
+              img.src = src;
+            }
           });
         }
         // Additional wait for rendering
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 500));
       } else {
         await new Promise(resolve => setTimeout(resolve, 500));
       }
       
-      const canvas = await html2canvas(shareCardRef.current, {
+      // Force a reflow
+      cardElement.offsetHeight;
+      
+      const canvas = await html2canvas(cardElement, {
         useCORS: true,
         scale: 2,
         backgroundColor: '#1a73e8',
-        logging: false,
-        allowTaint: false,
+        logging: true,
+        allowTaint: true,
         width: 1080,
         height: 1350,
+        windowWidth: 1080,
+        windowHeight: 1350,
       });
+      
+      // Restore original styles
+      cardElement.style.position = originalStyle.position;
+      cardElement.style.left = originalStyle.left;
+      cardElement.style.top = originalStyle.top;
+      cardElement.style.opacity = originalStyle.opacity;
+      cardElement.style.visibility = originalStyle.visibility;
+      cardElement.style.zIndex = originalStyle.zIndex;
 
       canvas.toBlob(async (blob) => {
         if (!blob) {
@@ -178,9 +230,43 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
         setSharing(false);
       }, 'image/png', 0.95);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating canvas:', error);
-      setShareStatus('Error generating image. Try downloading PNG instead.');
+      
+      // Restore styles in case of error
+      if (shareCardRef.current) {
+        shareCardRef.current.style.position = '';
+        shareCardRef.current.style.left = '';
+        shareCardRef.current.style.top = '';
+        shareCardRef.current.style.opacity = '';
+        shareCardRef.current.style.visibility = '';
+        shareCardRef.current.style.zIndex = '';
+      }
+      
+      // Fallback: try using the regular certificate preview
+      try {
+        if (previewRef.current) {
+          const canvas = await html2canvas(previewRef.current, {
+            useCORS: true,
+            scale: 2,
+            backgroundColor: null,
+            logging: false,
+          });
+          
+          const dataUrl = canvas.toDataURL('image/png');
+          const link = document.createElement('a');
+          link.href = dataUrl;
+          link.download = `certificate-${certificate.eventName.replace(/\s+/g, '-')}.png`;
+          link.click();
+          setShareStatus('Certificate downloaded! Share it manually.');
+          setSharing(false);
+          return;
+        }
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError);
+      }
+      
+      setShareStatus(`Error: ${error.message || 'Failed to generate image'}. Try downloading PNG instead.`);
       setSharing(false);
     }
   };
@@ -271,10 +357,19 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
       </div>
 
       {/* Hidden Share Card for generating share image */}
-      <div className="fixed left-0 top-0 w-[1080px] h-[1350px] pointer-events-none opacity-0 overflow-hidden" style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
-        <div ref={shareCardRef} className="w-full h-full">
-          <ShareCard certificate={certificate} template={template} />
-        </div>
+      <div 
+        ref={shareCardRef}
+        className="w-[1080px] h-[1350px] pointer-events-none"
+        style={{ 
+          position: 'fixed',
+          left: '-9999px',
+          top: '0',
+          opacity: '0',
+          visibility: 'hidden',
+          zIndex: '-1'
+        }}
+      >
+        <ShareCard certificate={certificate} template={template} />
       </div>
 
       <ShareModal
