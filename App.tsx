@@ -5,6 +5,7 @@ import Hero from './components/Hero';
 import About from './components/About';
 import UpcomingEvents from './components/UpcomingEvents';
 import PastEventsGallery from './components/PastEventsGallery';
+import CertificateShowcase from './components/CertificateShowcase';
 import Team from './components/Team';
 import Partners from './components/Partners';
 import SocialFeed from './components/SocialFeed';
@@ -107,6 +108,7 @@ const Home: React.FC<{ darkMode: boolean; toggleTheme: () => void }> = ({ darkMo
         <About />
         <UpcomingEvents />
         <PastEventsGallery />
+        <CertificateShowcase />
         <SocialFeed />
         <Team />
         <Partners />

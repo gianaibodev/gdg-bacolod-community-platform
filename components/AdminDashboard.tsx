@@ -1,12 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Event, TeamMember, Partner } from '../types';
 import * as CMS from '../services/mockCms';
-import { Trash2, Edit, Plus, Save, LogOut, LayoutDashboard, Users, Calendar, X, Search, ChevronRight, Menu, Award } from 'lucide-react';
+import {
+  Trash2,
+  Edit,
+  Plus,
+  Save,
+  LogOut,
+  LayoutDashboard,
+  Users,
+  Calendar,
+  X,
+  Search,
+  ChevronRight,
+  Menu,
+  Award,
+  FileText,
+} from 'lucide-react';
+import CertificateGenerator from './CertificateGenerator';
 
 const AdminDashboard: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
-  const [activeTab, setActiveTab] = useState<'events' | 'team' | 'partners'>('events');
+  const [activeTab, setActiveTab] = useState<'events' | 'team' | 'partners' | 'certificates'>('events');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Login Logic
@@ -108,6 +124,15 @@ const AdminDashboard: React.FC = () => {
             <Award size={20} /> Partners
             {activeTab === 'partners' && <ChevronRight size={16} className="ml-auto opacity-50" />}
           </button>
+          <button 
+            onClick={() => { setActiveTab('certificates'); setSidebarOpen(false); }}
+            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-medium ${
+              activeTab === 'certificates' ? 'bg-google-blue/10 text-google-blue' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <FileText size={20} /> Certificates
+            {activeTab === 'certificates' && <ChevronRight size={16} className="ml-auto opacity-50" />}
+          </button>
         </nav>
 
         <div className="p-4 border-t border-slate-100">
@@ -136,14 +161,21 @@ const AdminDashboard: React.FC = () => {
 
         <div className="p-4 md:p-8 lg:p-12 max-w-7xl mx-auto">
           <header className="mb-6 md:mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 capitalize mb-2">{activeTab} Management</h2>
-            <p className="text-sm md:text-base text-slate-500 hidden md:block">Manage your community {activeTab} efficiently.</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 capitalize mb-2">
+              {activeTab === 'certificates' ? 'Certificates' : activeTab} Management
+            </h2>
+            <p className="text-sm md:text-base text-slate-500 hidden md:block">
+              {activeTab === 'certificates'
+                ? 'Generate and download certificates for your attendees.'
+                : `Manage your community ${activeTab} efficiently.`}
+            </p>
           </header>
 
           <div className="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-slate-200 overflow-hidden min-h-[400px]">
             {activeTab === 'events' && <EventsManager />}
             {activeTab === 'team' && <TeamManager />}
             {activeTab === 'partners' && <PartnersManager />}
+            {activeTab === 'certificates' && <CertificateGenerator />}
           </div>
         </div>
       </main>
