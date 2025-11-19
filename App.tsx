@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import About from './components/About';
 import UpcomingEvents from './components/UpcomingEvents';
+import PastEventsGallery from './components/PastEventsGallery';
 import Team from './components/Team';
 import Partners from './components/Partners';
 import SocialFeed from './components/SocialFeed';
@@ -105,6 +106,7 @@ const Home: React.FC = () => {
         <Hero />
         <About />
         <UpcomingEvents />
+        <PastEventsGallery />
         <SocialFeed />
         <Team />
         <Partners />

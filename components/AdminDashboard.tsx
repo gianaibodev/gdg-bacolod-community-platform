@@ -182,7 +182,26 @@ const EventsManager: React.FC = () => {
              </div>
              <div className="col-span-2">
                <label className="block text-sm font-medium mb-1">Image URL</label>
-               <input className="w-full p-2 border rounded" value={formData.imageUrl || ''} onChange={e => setFormData({...formData, imageUrl: e.target.value})} />
+               <input 
+                 className="w-full p-2 border rounded mb-2" 
+                 value={formData.imageUrl || ''} 
+                 onChange={e => setFormData({...formData, imageUrl: e.target.value})} 
+                 placeholder="https://example.com/image.jpg"
+               />
+               {formData.imageUrl && (
+                 <div className="mt-2 relative w-full h-48 rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
+                   <img 
+                     src={formData.imageUrl} 
+                     alt="Preview" 
+                     className="w-full h-full object-contain"
+                     onError={(e) => {
+                       (e.target as HTMLImageElement).style.display = 'none';
+                       // You could show a 'broken image' icon here instead
+                     }}
+                   />
+                   <div className="absolute bottom-0 left-0 bg-black/50 text-white text-xs px-2 py-1">Preview</div>
+                 </div>
+               )}
              </div>
              <div className="col-span-2">
                <label className="block text-sm font-medium mb-1">Registration Link</label>

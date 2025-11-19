@@ -1,99 +1,97 @@
-
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Event } from '../types';
-import { getPastEvents } from '../services/mockCms';
+import { getUpcomingEvents } from '../services/mockCms';
+import { Calendar, MapPin, Clock, ArrowRight } from 'lucide-react';
 
 const UpcomingEvents: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
-  const [isVisible, setIsVisible] = useState(false);
-  const sectionRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchEvents = async () => {
-      const data = await getPastEvents();
-      setEvents(data); 
+      const data = await getUpcomingEvents();
+      setEvents(data);
+      setLoading(false);
     };
     fetchEvents();
   }, []);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 }
-    );
+  if (loading) return null; // Or a skeleton loader
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
-    return () => observer.disconnect();
-  }, []);
-
-  // 3D Tilt Logic
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
-    const card = e.currentTarget;
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    const rotateX = ((y - centerY) / centerY) * -5; // Max rotation deg
-    const rotateY = ((x - centerX) / centerX) * 5;
-
-    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
-  };
-
-  const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
-  };
+  if (events.length === 0) {
+      return (
+        <section id="upcoming" className="py-20 bg-slate-50 dark:bg-[#1a1a1a]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Upcoming Events</h2>
+                <p className="text-slate-600 dark:text-slate-400">No upcoming events scheduled at the moment. Check back soon!</p>
+            </div>
+        </section>
+      )
+  }
 
   return (
-    <section id="gallery" ref={sectionRef} className="py-40 bg-white dark:bg-[#121212] transition-colors duration-500 overflow-hidden">
+    <section id="upcoming" className="py-20 bg-slate-50 dark:bg-[#1a1a1a] transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className={`mb-24 relative transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <h2 className="text-[12rem] leading-none font-bold text-slate-50 dark:text-white/5 tracking-tighter absolute top-[-4rem] left-[-2rem] pointer-events-none select-none scale-150 opacity-50">
-            MOMENTS
-          </h2>
-          <div className="relative z-10">
-            <h3 className="text-4xl md:text-6xl font-bold text-slate-900 dark:text-white mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-google-blue via-google-red to-google-yellow animate-gradient-x">
-              Community <br/> 
-              Gallery
-            </h3>
-            <div className="h-1.5 w-24 bg-gradient-to-r from-google-blue via-google-red to-google-yellow rounded-full animate-gradient-x"></div>
-          </div>
+        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+            <div>
+                <h2 className="text-sm font-bold text-google-blue tracking-widest uppercase mb-2">What's Next</h2>
+                <h3 className="text-4xl font-bold text-slate-900 dark:text-white">Upcoming Events</h3>
+            </div>
+            <a href="https://gdg.community.dev/gdg-bacolod/" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-google-blue font-bold hover:underline">
+                View All on Community Page <ArrowRight size={16} />
+            </a>
         </div>
 
-        {/* Masonry-style Grid - Pure Visuals */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10 auto-rows-[350px] md:auto-rows-[450px]">
-          {events.map((event, index) => (
-            <div 
-              key={event.id} 
-              className={`relative group rounded-[2rem] overflow-hidden cursor-pointer transition-all duration-300 ease-out shadow-2xl shadow-slate-200/50 dark:shadow-black/50 ${index === 0 ? 'md:col-span-2 md:row-span-2' : ''} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}
-              style={{ transitionDelay: `${index * 100}ms` }}
-              onMouseMove={(e) => handleMouseMove(e, index)}
-              onMouseLeave={handleMouseLeave}
-            >
-              <img 
-                src={event.imageUrl} 
-                alt="Event Highlight" 
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-              />
-              
-              {/* Glass Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
-              {/* Reflection Effect */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none mix-blend-overlay"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {events.map((event) => (
+            <div key={event.id} className="bg-white dark:bg-[#252527] rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 group border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row h-full md:h-[280px]">
+              {/* Image Section */}
+              <div className="w-full md:w-2/5 relative overflow-hidden h-48 md:h-full">
+                <img 
+                  src={event.imageUrl} 
+                  alt={event.title} 
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute top-4 left-4 bg-white/90 dark:bg-black/80 backdrop-blur-sm px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide text-slate-900 dark:text-white shadow-sm">
+                    {event.category}
+                </div>
+              </div>
 
-              {/* Floating Icon */}
-              <div className="absolute bottom-8 right-8 w-16 h-16 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
-                 </svg>
+              {/* Content Section */}
+              <div className="w-full md:w-3/5 p-6 md:p-8 flex flex-col justify-between">
+                <div>
+                    <h4 className="text-2xl font-bold text-slate-900 dark:text-white mb-4 line-clamp-2 group-hover:text-google-blue transition-colors">
+                        {event.title}
+                    </h4>
+                    
+                    <div className="space-y-3 mb-6">
+                        <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300 text-sm">
+                            <Calendar size={18} className="text-google-red" />
+                            <span>{event.date}</span>
+                        </div>
+                        {event.time && (
+                            <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300 text-sm">
+                                <Clock size={18} className="text-google-yellow" />
+                                <span>{event.time}</span>
+                            </div>
+                        )}
+                         {event.venue && (
+                            <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300 text-sm">
+                                <MapPin size={18} className="text-google-green" />
+                                <span className="line-clamp-1">{event.venue}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <a 
+                    href={event.registrationLink || '#'}
+                    target="_blank"
+                    rel="noreferrer" 
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:bg-google-blue dark:hover:bg-google-blue hover:text-white dark:hover:text-white transition-colors w-full md:w-fit"
+                >
+                    RSVP Now
+                </a>
               </div>
             </div>
           ))}
@@ -104,3 +102,4 @@ const UpcomingEvents: React.FC = () => {
 };
 
 export default UpcomingEvents;
+
