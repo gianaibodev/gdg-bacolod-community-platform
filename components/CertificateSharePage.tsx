@@ -3,7 +3,6 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Download, Share2 } from 'lucide-react';
 import { getIssuedCertificateById, getCertificateTemplates } from '../services/mockCms';
 import { Certificate, CertificateTemplate } from '../types';
-import HolographicCard from './HolographicCard';
 import PublicCertificateRenderer from './PublicCertificateRenderer';
 
 const CertificateSharePage: React.FC = () => {
@@ -214,32 +213,49 @@ const CertificateSharePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Holographic Certificate Display */}
+        {/* Certificate Display */}
         <div className="mb-12 flex justify-center">
-          <div className="w-full max-w-2xl transform hover:scale-[1.02] transition-transform duration-300">
-            <div className="relative">
-              {/* Glow effect */}
-              <div className="absolute -inset-4 bg-gradient-to-r from-google-blue via-google-red to-google-yellow rounded-3xl blur-2xl opacity-30 animate-pulse-glow"></div>
-              <div className="relative">
-                <HolographicCard
-                  certificate={certificate}
-                  onDownload={() => {
-                    // Trigger download
-                    const link = document.createElement('a');
-                    link.href = `/certificates?certId=${certificate.uniqueId}`;
-                    link.click();
-                  }}
-                  onShare={() => {
-                    // Share functionality
-                    if (navigator.share) {
-                      navigator.share({
-                        title: `${certificate.eventName} Certificate`,
-                        text: `Check out my certificate!`,
-                        url: window.location.href,
-                      });
-                    }
-                  }}
+          <div className="w-full max-w-4xl">
+            <div className="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-6 md:p-8 border border-slate-200 dark:border-slate-700 overflow-hidden">
+              {/* Certificate Image */}
+              <div 
+                className="relative w-full"
+                style={{ aspectRatio: '297 / 210' }}
+              >
+                <img
+                  src={template.templateImageUrl}
+                  alt="Certificate"
+                  className="w-full h-full object-cover rounded-2xl"
+                  crossOrigin="anonymous"
                 />
+                {/* Recipient Name Overlay */}
+                <div
+                  className="absolute text-2xl md:text-5xl font-black tracking-tight text-center px-4"
+                  style={{
+                    left: template.namePosition ? `${template.namePosition.x}%` : '50%',
+                    top: template.namePosition ? `${template.namePosition.y}%` : '50%',
+                    transform: 'translate(-50%, -50%)',
+                    color: template.textColor === 'white' ? '#ffffff' : '#0f172a',
+                    textShadow: template.textColor === 'white' 
+                      ? '0 2px 10px rgba(0,0,0,0.4)' 
+                      : '0 1px 6px rgba(255,255,255,0.9)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {certificate.recipientName}
+                </div>
+                {/* Certificate ID */}
+                <div 
+                  className="absolute bottom-6 right-8 text-[10px] md:text-xs font-mono"
+                  style={{ 
+                    color: template.textColor === 'white' ? '#ffffff' : '#0f172a',
+                    textShadow: template.textColor === 'white' 
+                      ? '0 1px 3px rgba(0,0,0,0.3)' 
+                      : '0 1px 3px rgba(255,255,255,0.5)',
+                  }}
+                >
+                  ID: {certificate.uniqueId}
+                </div>
               </div>
             </div>
           </div>
