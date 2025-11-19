@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Moon, Sun } from 'lucide-react';
 
+import { HashLink } from 'react-router-hash-link';
+
 interface NavbarProps {
   darkMode: boolean;
   toggleTheme: () => void;
@@ -37,7 +39,7 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleTheme }) => {
       `}>
         
         {/* Logo Section */}
-        <a href="#" className="flex-shrink-0 group cursor-pointer flex items-center gap-2">
+        <HashLink smooth to="/#" className="flex-shrink-0 group cursor-pointer flex items-center gap-2">
           <div className="h-8 flex items-center">
              {!logoError ? (
                 <img 
@@ -57,18 +59,19 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleTheme }) => {
                 </div>
               )}
           </div>
-        </a>
+        </HashLink>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
-            <a
+            <HashLink
               key={link.name}
-              href={link.href}
+              smooth
+              to={`/${link.href}`}
               className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors relative group/link"
             >
               {link.name}
-            </a>
+            </HashLink>
           ))}
           
           <div className={`w-px h-4 bg-slate-300 dark:bg-slate-700 mx-2 ${!scrolled && 'hidden'}`}></div>
@@ -117,14 +120,15 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleTheme }) => {
       {/* Mobile Dropdown Overlay */}
       <div className={`md:hidden fixed inset-0 bg-white/95 dark:bg-[#121212]/95 backdrop-blur-xl z-40 transition-all duration-500 pointer-events-auto flex flex-col justify-center items-center space-y-8 ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
         {navLinks.map((link) => (
-            <a
+            <HashLink
               key={link.name}
-              href={link.href}
+              smooth
+              to={`/${link.href}`}
               onClick={() => setIsOpen(false)}
               className="text-3xl font-bold text-slate-900 dark:text-white hover:text-google-blue transition-colors"
             >
               {link.name}
-            </a>
+            </HashLink>
           ))}
           <a
             href="https://gdg.community.dev/gdg-bacolod/"
