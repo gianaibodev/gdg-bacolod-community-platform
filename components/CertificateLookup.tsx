@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Certificate, CertificateTemplate } from '../types';
 import {
   getCertificateTemplates,
@@ -21,6 +21,7 @@ const generateId = () => {
 
 const CertificateLookup: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [templates, setTemplates] = useState<CertificateTemplate[]>([]);
   const [selectedEventId, setSelectedEventId] = useState('');
   const [fullName, setFullName] = useState('');
@@ -46,47 +47,14 @@ const CertificateLookup: React.FC = () => {
     load();
   }, []);
 
-  // Load certificate from URL if certId is present
+  // Redirect to share page if certId is present in query params
   useEffect(() => {
     const certId = searchParams.get('certId');
-    if (certId && templates.length > 0) {
-      const loadCertificate = async () => {
-        setLoadingCertificate(true);
-        try {
-          const certificate = await getIssuedCertificateById(certId);
-          if (certificate) {
-            const template = templates.find(t => t.eventId === certificate.eventId);
-            if (template) {
-              setResult({ certificate, template });
-              setStatus({
-                type: 'success',
-                text: `Certificate loaded for ${certificate.recipientName}. Cert ID: ${certificate.uniqueId}`,
-              });
-            } else {
-              setStatus({
-                type: 'error',
-                text: 'Certificate template not found for this certificate.',
-              });
-            }
-          } else {
-            setStatus({
-              type: 'error',
-              text: 'Certificate not found. Please verify the certificate ID.',
-            });
-          }
-        } catch (error) {
-          console.error('Error loading certificate:', error);
-          setStatus({
-            type: 'error',
-            text: 'Failed to load certificate. Please try again.',
-          });
-        } finally {
-          setLoadingCertificate(false);
-        }
-      };
-      loadCertificate();
+    if (certId) {
+      // Redirect to the dedicated share page
+      navigate(`/certificates/share/${certId}`, { replace: true });
     }
-  }, [searchParams, templates]);
+  }, [searchParams, navigate]);
 
   const handleLookup = async (event: React.FormEvent) => {
     event.preventDefault();
