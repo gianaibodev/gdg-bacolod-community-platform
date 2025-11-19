@@ -13,6 +13,13 @@ const CertificateSharePage: React.FC = () => {
   const [template, setTemplate] = useState<CertificateTemplate | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('CertificateSharePage mounted');
+    console.log('certId from params:', certId);
+    console.log('Current URL:', window.location.href);
+  }, [certId]);
+
   useEffect(() => {
     const loadCertificate = async () => {
       if (!certId) {
@@ -23,11 +30,12 @@ const CertificateSharePage: React.FC = () => {
 
       try {
         setLoading(true);
-        console.log('Loading certificate with ID:', certId);
+        console.log('Fetching certificate with ID:', certId);
         const cert = await getIssuedCertificateById(certId);
-        console.log('Certificate loaded:', cert);
+        console.log('Certificate result:', cert);
         
         if (!cert) {
+          console.error('Certificate not found for ID:', certId);
           setError('Certificate not found');
           setLoading(false);
           return;

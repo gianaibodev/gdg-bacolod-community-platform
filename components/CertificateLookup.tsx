@@ -35,6 +35,7 @@ const CertificateLookup: React.FC = () => {
   useEffect(() => {
     const certId = searchParams.get('certId');
     if (certId) {
+      console.log('Redirecting from query param certId:', certId);
       // Immediately redirect to the dedicated share page - use window.location for hard redirect
       window.location.href = `/certificates/share/${certId}`;
       return;
