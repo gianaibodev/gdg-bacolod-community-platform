@@ -29,7 +29,14 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
     if (!previewRef.current) return;
     setDownloading('pdf');
     try {
-      const canvas = await html2canvas(previewRef.current, { useCORS: true, scale: 3 });
+      const canvas = await html2canvas(previewRef.current, { 
+        useCORS: true, 
+        scale: 3,
+        onclone: (clonedDoc) => {
+           const element = clonedDoc.querySelector('[data-html2canvas-ignore]') as HTMLElement;
+           if (element) element.style.display = 'none';
+        }
+      });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('l', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -53,7 +60,11 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
     if (!previewRef.current) return;
     setDownloading('png');
     try {
-      const canvas = await html2canvas(previewRef.current, { useCORS: true, scale: 3 });
+      const canvas = await html2canvas(previewRef.current, { 
+        useCORS: true, 
+        scale: 3,
+        backgroundColor: null, // Transparent background
+      });
       const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = dataUrl;
@@ -314,26 +325,47 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
     <div className="space-y-6">
       <div
         ref={previewRef}
-        className="relative w-full max-w-5xl mx-auto aspect-[1.414/1] rounded-[20px] overflow-hidden border border-white/40 shadow-2xl"
+        className="relative w-full max-w-5xl mx-auto aspect-[1.414/1] rounded-[20px] overflow-hidden shadow-2xl"
+        style={{
+          borderColor: 'rgba(255, 255, 255, 0.4)',
+          borderWidth: '1px',
+          borderStyle: 'solid'
+        }}
       >
         <img
           src={template.templateImageUrl}
           alt={`${template.eventName} certificate template`}
           className="absolute inset-0 w-full h-full object-cover"
+          crossOrigin="anonymous"
         />
         
         <div
-          className={`absolute text-2xl md:text-5xl font-black tracking-tight text-center px-4 ${finalClassName}`}
-          style={nameStyle}
+          className="absolute text-2xl md:text-5xl font-black tracking-tight text-center px-4"
+          style={{
+            ...nameStyle,
+            color: template.textColor === 'white' ? '#ffffff' : '#0f172a',
+            textShadow: template.textColor === 'white' 
+              ? '0 2px 10px rgba(0,0,0,0.4)' 
+              : '0 1px 6px rgba(255,255,255,0.9)',
+          }}
         >
           {certificate.recipientName}
         </div>
 
-        <div className="absolute bottom-10 left-12 text-white/90 text-sm tracking-[0.3em] uppercase hidden md:block">
+        <div 
+          className="absolute bottom-10 left-12 text-sm tracking-[0.3em] uppercase hidden md:block"
+          style={{ color: 'rgba(255, 255, 255, 0.9)' }}
+        >
           {template.eventName}
         </div>
 
-        <div className="absolute bottom-8 right-12 text-xs font-mono text-white/80 bg-black/40 px-3 py-1 rounded-full hidden md:block">
+        <div 
+          className="absolute bottom-8 right-12 text-xs font-mono px-3 py-1 rounded-full hidden md:block"
+          style={{ 
+            color: 'rgba(255, 255, 255, 0.8)',
+            backgroundColor: 'rgba(0, 0, 0, 0.4)'
+          }}
+        >
           ID: {certificate.uniqueId}
         </div>
       </div>
