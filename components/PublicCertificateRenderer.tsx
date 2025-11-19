@@ -147,33 +147,71 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
       const bgColor = computedStyles.backgroundColor || '#4285F4';
       
       // Convert all computed styles to safe colors before html2canvas
+      // This function converts ALL color properties to hex/rgb to avoid oklab/oklch parsing
       const convertToSafeColors = (element: HTMLElement) => {
         const computed = window.getComputedStyle(element);
         const styles = element.style;
         
-        // Convert background color
-        if (computed.backgroundColor && (computed.backgroundColor.includes('oklab') || computed.backgroundColor.includes('oklch'))) {
-          styles.backgroundColor = '#4285F4';
+        // Helper to convert any color format to hex/rgb
+        const toSafeColor = (colorValue: string, fallback: string): string => {
+          if (!colorValue || colorValue === 'transparent' || colorValue === 'rgba(0, 0, 0, 0)') {
+            return fallback;
+          }
+          if (colorValue.includes('oklab') || colorValue.includes('oklch')) {
+            return fallback;
+          }
+          // If it's already rgb/rgba/hex, keep it
+          if (colorValue.startsWith('#') || colorValue.startsWith('rgb')) {
+            return colorValue;
+          }
+          return fallback;
+        };
+        
+        // Force convert all color properties to inline styles
+        const bgColor = computed.backgroundColor;
+        if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)') {
+          styles.backgroundColor = toSafeColor(bgColor, '#4285F4');
         }
         
-        // Convert color
-        if (computed.color && (computed.color.includes('oklab') || computed.color.includes('oklch'))) {
-          const textColor = computed.color.includes('white') || computed.color.includes('255') ? '#ffffff' : '#000000';
-          styles.color = textColor;
+        const textColor = computed.color;
+        if (textColor) {
+          // Try to preserve white/black but convert to hex
+          if (textColor.includes('255') || textColor.toLowerCase().includes('white')) {
+            styles.color = '#ffffff';
+          } else if (textColor.includes('0') && !textColor.includes('255')) {
+            styles.color = '#000000';
+          } else {
+            styles.color = toSafeColor(textColor, '#000000');
+          }
         }
         
-        // Convert border color
-        if (computed.borderColor && (computed.borderColor.includes('oklab') || computed.borderColor.includes('oklch'))) {
-          styles.borderColor = 'rgba(255, 255, 255, 0.2)';
+        // Convert border colors
+        if (computed.borderColor && computed.borderColor !== 'rgba(0, 0, 0, 0)') {
+          styles.borderColor = toSafeColor(computed.borderColor, 'rgba(255, 255, 255, 0.2)');
         }
         
-        // Recursively process children
+        // Convert box-shadow colors
+        if (computed.boxShadow && computed.boxShadow !== 'none') {
+          // Extract color from box-shadow and convert
+          const shadowMatch = computed.boxShadow.match(/rgba?\([^)]+\)|#[0-9a-fA-F]{3,6}/);
+          if (shadowMatch) {
+            const shadowColor = shadowMatch[0];
+            const safeShadowColor = toSafeColor(shadowColor, 'rgba(0, 0, 0, 0.25)');
+            styles.boxShadow = computed.boxShadow.replace(shadowMatch[0], safeShadowColor);
+          }
+        }
+        
+        // Recursively process all children
         Array.from(element.children).forEach(child => {
           convertToSafeColors(child as HTMLElement);
         });
       };
       
+      // Convert all colors in the element tree
       convertToSafeColors(cardElement);
+      
+      // Wait a bit for styles to apply
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       const canvas = await html2canvas(cardElement, {
         useCORS: true,
@@ -186,21 +224,43 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
         windowWidth: 1080,
         windowHeight: 1350,
         onclone: (clonedDoc, element) => {
-          // Force convert all colors in cloned document
+          // Force convert all colors in cloned document to safe formats
           const allElements = clonedDoc.querySelectorAll('*');
           allElements.forEach((el) => {
             const htmlEl = el as HTMLElement;
             const computed = window.getComputedStyle(htmlEl);
             
-            // Replace any oklab/oklch colors with hex
-            if (computed.backgroundColor && (computed.backgroundColor.includes('oklab') || computed.backgroundColor.includes('oklch'))) {
-              htmlEl.style.backgroundColor = '#4285F4';
+            // Convert all color properties
+            if (computed.backgroundColor) {
+              if (computed.backgroundColor.includes('oklab') || computed.backgroundColor.includes('oklch')) {
+                htmlEl.style.backgroundColor = '#4285F4';
+              } else if (!computed.backgroundColor.startsWith('#') && !computed.backgroundColor.startsWith('rgb')) {
+                // If it's not a safe format, force to hex
+                htmlEl.style.backgroundColor = '#4285F4';
+              }
             }
-            if (computed.color && (computed.color.includes('oklab') || computed.color.includes('oklch'))) {
-              htmlEl.style.color = computed.color.includes('255') || computed.color.includes('white') ? '#ffffff' : '#000000';
+            
+            if (computed.color) {
+              if (computed.color.includes('oklab') || computed.color.includes('oklch')) {
+                htmlEl.style.color = computed.color.includes('255') || computed.color.includes('white') ? '#ffffff' : '#000000';
+              } else if (!computed.color.startsWith('#') && !computed.color.startsWith('rgb')) {
+                htmlEl.style.color = computed.color.includes('255') || computed.color.includes('white') ? '#ffffff' : '#000000';
+              }
             }
-            if (computed.borderColor && (computed.borderColor.includes('oklab') || computed.borderColor.includes('oklch'))) {
-              htmlEl.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            
+            if (computed.borderColor) {
+              if (computed.borderColor.includes('oklab') || computed.borderColor.includes('oklch')) {
+                htmlEl.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+              } else if (!computed.borderColor.startsWith('#') && !computed.borderColor.startsWith('rgb')) {
+                htmlEl.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+              }
+            }
+            
+            // Convert box-shadow
+            if (computed.boxShadow && computed.boxShadow !== 'none') {
+              if (computed.boxShadow.includes('oklab') || computed.boxShadow.includes('oklch')) {
+                htmlEl.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.25)';
+              }
             }
           });
         },
