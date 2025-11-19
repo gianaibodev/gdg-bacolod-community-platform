@@ -30,8 +30,8 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
     setDownloading('pdf');
     try {
       const dataUrl = await toPng(previewRef.current, {
-        quality: 0.95,
-        pixelRatio: 3,
+        quality: 0.85,
+        pixelRatio: 2,
         backgroundColor: '#ffffff',
       });
       
@@ -65,8 +65,8 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
     setDownloading('png');
     try {
       const dataUrl = await toPng(previewRef.current, {
-        quality: 0.95,
-        pixelRatio: 3,
+        quality: 0.85,
+        pixelRatio: 2,
         backgroundColor: null, // Transparent background
       });
       const link = document.createElement('a');
@@ -105,7 +105,7 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
 
       // Generate blob directly using html-to-image (supports oklch natively)
       const blob = await toBlob(cardElement, {
-        quality: 0.95,
+        quality: 0.85,
         pixelRatio: 2,
         backgroundColor: '#4285F4',
       });
@@ -187,7 +187,7 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
       try {
         if (previewRef.current) {
           const blob = await toBlob(previewRef.current, {
-            quality: 0.95,
+            quality: 0.85,
             pixelRatio: 2,
             backgroundColor: null,
           });
@@ -239,11 +239,14 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
     <div className="space-y-6">
       <div
         ref={previewRef}
-        className="relative w-full max-w-5xl mx-auto aspect-[1.414/1] rounded-[20px] overflow-hidden shadow-2xl"
+        className="relative w-full mx-auto rounded-[20px] overflow-hidden shadow-2xl"
         style={{
           borderColor: 'rgba(255, 255, 255, 0.4)',
           borderWidth: '1px',
-          borderStyle: 'solid'
+          borderStyle: 'solid',
+          // A4 Landscape: 297mm x 210mm = 1.414:1 aspect ratio
+          aspectRatio: '297 / 210',
+          maxWidth: '100%',
         }}
       >
         <img
@@ -256,11 +259,14 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
         <div
           className="absolute text-2xl md:text-5xl font-black tracking-tight text-center px-4"
           style={{
-            ...nameStyle,
+            left: template.namePosition ? `${template.namePosition.x}%` : '50%',
+            top: template.namePosition ? `${template.namePosition.y}%` : '50%',
+            transform: 'translate(-50%, -50%)',
             color: template.textColor === 'white' ? '#ffffff' : '#0f172a',
             textShadow: template.textColor === 'white' 
               ? '0 2px 10px rgba(0,0,0,0.4)' 
               : '0 1px 6px rgba(255,255,255,0.9)',
+            whiteSpace: 'nowrap',
           }}
         >
           {certificate.recipientName}

@@ -1060,7 +1060,13 @@ const CertificatesManager: React.FC = () => {
                 Live preview with sample name
               </div>
               <div className="p-4">
-                <div className="relative w-full max-w-2xl mx-auto aspect-[1.414/1] rounded-lg overflow-hidden border border-slate-200 shadow-lg">
+                <div 
+                  className="relative w-full max-w-2xl mx-auto rounded-lg overflow-hidden border border-slate-200 shadow-lg"
+                  style={{
+                    // A4 Landscape: 297mm x 210mm
+                    aspectRatio: '297 / 210',
+                  }}
+                >
                   <img
                     src={formState.templateImageUrl}
                     alt="Certificate template"

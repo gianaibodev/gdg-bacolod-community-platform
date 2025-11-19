@@ -37,8 +37,8 @@ const CertificateGenerator: React.FC = () => {
     try {
       setDownloading(true);
       const dataUrl = await toPng(previewRef.current, {
-        quality: 0.95,
-        pixelRatio: 3,
+        quality: 0.85,
+        pixelRatio: 2,
         backgroundColor: '#ffffff',
       });
 
@@ -159,13 +159,16 @@ const CertificateGenerator: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className={`w-full max-w-[210mm] aspect-[1.414/1] rounded-lg shadow-2xl border relative overflow-hidden ${
+          className={`w-full rounded-lg shadow-2xl border relative overflow-hidden ${
             isDevFest
               ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 border-slate-700'
               : 'bg-gradient-to-br from-white via-sky-50 to-slate-50 border-slate-200'
           }`}
           style={{
             fontFamily: '"Google Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+            // A4 Landscape: 297mm x 210mm
+            aspectRatio: '297 / 210',
+            maxWidth: '210mm',
           }}
         >
           {/* Decorative orbs / grid */}
