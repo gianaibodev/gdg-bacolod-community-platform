@@ -17,6 +17,7 @@ const ShareCard: React.FC<ShareCardProps> = ({ certificate, template }) => {
 
   return (
     <div 
+      id="share-card-container"
       style={{
         position: 'relative',
         width: '1080px',
@@ -27,7 +28,12 @@ const ShareCard: React.FC<ShareCardProps> = ({ certificate, template }) => {
         justifyContent: 'center',
         padding: '64px',
         overflow: 'hidden',
-        background: 'linear-gradient(to bottom right, #4285F4, #2563eb, #1e40af)',
+        backgroundColor: '#4285F4', // Force HEX - primary background
+        background: 'linear-gradient(to bottom right, #4285F4, #2563eb, #1e40af)', // Fallback gradient
+        color: '#ffffff', // Force HEX - default text color
+        // Override any CSS classes that might use oklch
+        border: 'none',
+        boxShadow: 'none',
       }}
     >
       {/* Background Pattern */}

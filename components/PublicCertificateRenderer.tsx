@@ -100,12 +100,18 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
       };
       
       // Position it off-screen but visible to html2canvas
+      // Force all color properties to HEX before making visible
       cardElement.style.position = 'fixed';
       cardElement.style.left = '0';
       cardElement.style.top = '0';
       cardElement.style.opacity = '1';
       cardElement.style.visibility = 'visible';
       cardElement.style.zIndex = '9999';
+      // Force HEX colors on root element to override any CSS classes
+      cardElement.style.backgroundColor = '#4285F4';
+      cardElement.style.color = '#ffffff';
+      cardElement.style.border = 'none';
+      cardElement.style.boxShadow = 'none';
       
       // Wait for images to load
       const img = cardElement.querySelector('img') as HTMLImageElement;
@@ -213,10 +219,40 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
       // Wait a bit for styles to apply
       await new Promise(resolve => setTimeout(resolve, 100));
       
+      // Final pass: Force all elements to use HEX colors only
+      const forceHexColors = (el: HTMLElement) => {
+        const style = el.style;
+        const computed = window.getComputedStyle(el);
+        
+        // Force background to HEX
+        if (computed.backgroundColor && computed.backgroundColor !== 'rgba(0, 0, 0, 0)') {
+          if (computed.backgroundColor.includes('oklch') || computed.backgroundColor.includes('oklab')) {
+            style.backgroundColor = '#4285F4';
+          } else if (!computed.backgroundColor.startsWith('#') && !computed.backgroundColor.startsWith('rgb')) {
+            style.backgroundColor = '#4285F4';
+          }
+        }
+        
+        // Force text color to HEX
+        if (computed.color) {
+          if (computed.color.includes('oklch') || computed.color.includes('oklab')) {
+            style.color = computed.color.includes('255') || computed.color.includes('white') ? '#ffffff' : '#000000';
+          } else if (!computed.color.startsWith('#') && !computed.color.startsWith('rgb')) {
+            style.color = computed.color.includes('255') || computed.color.includes('white') ? '#ffffff' : '#000000';
+          }
+        }
+        
+        // Process children
+        Array.from(el.children).forEach(child => forceHexColors(child as HTMLElement));
+      };
+      
+      forceHexColors(cardElement);
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
       const canvas = await html2canvas(cardElement, {
         useCORS: true,
         scale: 2,
-        backgroundColor: '#4285F4',
+        backgroundColor: '#4285F4', // Force HEX background
         logging: false,
         allowTaint: false,
         width: 1080,
