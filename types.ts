@@ -39,3 +39,13 @@ export interface SocialPost {
   timestamp: string;
   likes: number;
 }
+
+// Represents a generated Certificate
+export interface Certificate {
+  id: string;
+  eventName: string;
+  recipientName: string;
+  date: string; // ISO string or human-readable date
+  theme: 'devfest' | 'io';
+  pdfUrl?: string; // optional storage URL if persisted
+}
