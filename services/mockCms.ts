@@ -1,4 +1,5 @@
 import { Event, TeamMember, Partner, SocialPost } from '../types';
+import { getCollection, saveDocument, deleteDocument } from './firebaseService';
 
 // INITIAL SEED DATA
 const DEFAULT_EVENTS: Event[] = [
@@ -103,63 +104,24 @@ const DEFAULT_PARTNERS: Partner[] = [
   { id: 'p1', name: 'Google', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg', websiteUrl: 'https://developers.google.com', tier: 'Platinum' },
 ];
 
-// --- STORAGE HELPERS ---
-
-const STORAGE_KEYS = {
-  EVENTS: 'gdg_bacolod_events_v2',
-  TEAM: 'gdg_bacolod_team',
-  PARTNERS: 'gdg_bacolod_partners'
-};
-
-const getStoredEvents = (): Event[] => {
-  const stored = localStorage.getItem(STORAGE_KEYS.EVENTS);
-  if (stored) return JSON.parse(stored);
-  localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(DEFAULT_EVENTS));
-  return DEFAULT_EVENTS;
-};
-
-const getStoredTeam = (): TeamMember[] => {
-  const stored = localStorage.getItem(STORAGE_KEYS.TEAM);
-  if (stored) return JSON.parse(stored);
-  localStorage.setItem(STORAGE_KEYS.TEAM, JSON.stringify(DEFAULT_TEAM));
-  return DEFAULT_TEAM;
-};
-
-const getStoredPartners = (): Partner[] => {
-  const stored = localStorage.getItem(STORAGE_KEYS.PARTNERS);
-  if (stored) return JSON.parse(stored);
-  localStorage.setItem(STORAGE_KEYS.PARTNERS, JSON.stringify(DEFAULT_PARTNERS));
-  return DEFAULT_PARTNERS;
-};
-
 // --- PUBLIC API ---
 
 export const getUpcomingEvents = async (): Promise<Event[]> => {
-  return new Promise(resolve => {
-    const allEvents = getStoredEvents();
-    const upcoming = allEvents.filter(e => e.status === 'upcoming');
-    setTimeout(() => resolve(upcoming), 500);
-  });
+  const allEvents = await getCollection<Event>('events', DEFAULT_EVENTS);
+  return allEvents.filter(e => e.status === 'upcoming');
 };
 
 export const getPastEvents = async (): Promise<Event[]> => {
-  return new Promise(resolve => {
-    const allEvents = getStoredEvents();
-    const past = allEvents.filter(e => e.status === 'past');
-    setTimeout(() => resolve(past), 500);
-  });
+  const allEvents = await getCollection<Event>('events', DEFAULT_EVENTS);
+  return allEvents.filter(e => e.status === 'past');
 };
 
 export const getTeamMembers = async (): Promise<TeamMember[]> => {
-  return new Promise(resolve => {
-    setTimeout(() => resolve(getStoredTeam()), 500);
-  });
+  return getCollection<TeamMember>('team', DEFAULT_TEAM);
 };
 
 export const getPartners = async (): Promise<Partner[]> => {
-  return new Promise(resolve => {
-    setTimeout(() => resolve(getStoredPartners()), 500);
-  });
+  return getCollection<Partner>('partners', DEFAULT_PARTNERS);
 };
 
 export const getSocialFeed = async (): Promise<SocialPost[]> => {
@@ -169,68 +131,29 @@ export const getSocialFeed = async (): Promise<SocialPost[]> => {
 // --- ADMIN API (CRUD) ---
 
 export const getAllEvents = async (): Promise<Event[]> => {
-  return getStoredEvents();
+  return getCollection<Event>('events', DEFAULT_EVENTS);
 };
 
 export const saveEvent = async (event: Event): Promise<void> => {
-  const events = getStoredEvents();
-  const index = events.findIndex(e => e.id === event.id);
-  
-  if (index >= 0) {
-    events[index] = event;
-  } else {
-    events.push(event);
-  }
-  
-  localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(events));
-  return Promise.resolve();
+  await saveDocument<Event>('events', event);
 };
 
 export const deleteEvent = async (id: string): Promise<void> => {
-  const events = getStoredEvents();
-  const filtered = events.filter(e => e.id !== id);
-  localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(filtered));
-  return Promise.resolve();
+  await deleteDocument('events', id);
 };
 
 export const saveTeamMember = async (member: TeamMember): Promise<void> => {
-  const team = getStoredTeam();
-  const index = team.findIndex(t => t.id === member.id);
-  
-  if (index >= 0) {
-    team[index] = member;
-  } else {
-    team.push(member);
-  }
-  
-  localStorage.setItem(STORAGE_KEYS.TEAM, JSON.stringify(team));
-  return Promise.resolve();
+  await saveDocument<TeamMember>('team', member);
 };
 
 export const deleteTeamMember = async (id: string): Promise<void> => {
-  const team = getStoredTeam();
-  const filtered = team.filter(t => t.id !== id);
-  localStorage.setItem(STORAGE_KEYS.TEAM, JSON.stringify(filtered));
-  return Promise.resolve();
+  await deleteDocument('team', id);
 };
 
 export const savePartner = async (partner: Partner): Promise<void> => {
-  const partners = getStoredPartners();
-  const index = partners.findIndex(p => p.id === partner.id);
-  
-  if (index >= 0) {
-    partners[index] = partner;
-  } else {
-    partners.push(partner);
-  }
-  
-  localStorage.setItem(STORAGE_KEYS.PARTNERS, JSON.stringify(partners));
-  return Promise.resolve();
+  await saveDocument<Partner>('partners', partner);
 };
 
 export const deletePartner = async (id: string): Promise<void> => {
-  const partners = getStoredPartners();
-  const filtered = partners.filter(p => p.id !== id);
-  localStorage.setItem(STORAGE_KEYS.PARTNERS, JSON.stringify(filtered));
-  return Promise.resolve();
+  await deleteDocument('partners', id);
 };

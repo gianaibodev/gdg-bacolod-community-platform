@@ -1,0 +1,116 @@
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, doc, getDoc, setDoc, deleteDoc, getDocs, query } from 'firebase/firestore';
+import { Event, TeamMember, Partner } from './types';
+
+// Firebase configuration - will use environment variables or defaults
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || '',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || ''
+};
+
+// Initialize Firebase only if config is provided
+let db: ReturnType<typeof getFirestore> | null = null;
+let useFirebase = false;
+
+try {
+  if (firebaseConfig.projectId && firebaseConfig.apiKey) {
+    const app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    useFirebase = true;
+    console.log('✅ Firebase connected - using shared storage');
+  } else {
+    console.log('⚠️ Firebase not configured - using localStorage (changes are local only)');
+  }
+} catch (error) {
+  console.error('Firebase initialization error:', error);
+  console.log('⚠️ Falling back to localStorage');
+}
+
+// Fallback to localStorage helpers
+const STORAGE_KEYS = {
+  EVENTS: 'gdg_bacolod_events_v2',
+  TEAM: 'gdg_bacolod_team',
+  PARTNERS: 'gdg_bacolod_partners'
+};
+
+const getLocalStorage = <T>(key: string, defaultValue: T): T => {
+  if (typeof window === 'undefined') return defaultValue;
+  const stored = localStorage.getItem(key);
+  if (stored) return JSON.parse(stored);
+  localStorage.setItem(key, JSON.stringify(defaultValue));
+  return defaultValue;
+};
+
+const setLocalStorage = <T>(key: string, value: T): void => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(key, JSON.stringify(value));
+};
+
+// Firestore helpers
+export const getCollection = async <T>(collectionName: string, defaultValue: T[]): Promise<T[]> => {
+  if (!useFirebase || !db) {
+    return getLocalStorage(STORAGE_KEYS[collectionName as keyof typeof STORAGE_KEYS] || collectionName, defaultValue);
+  }
+
+  try {
+    const q = query(collection(db, collectionName));
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.empty) {
+      // Initialize with default data if collection is empty
+      if (defaultValue.length > 0) {
+        await Promise.all(defaultValue.map(item => 
+          setDoc(doc(db, collectionName, (item as any).id), item)
+        ));
+      }
+      return defaultValue;
+    }
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
+  } catch (error) {
+    console.error(`Error fetching ${collectionName}:`, error);
+    return getLocalStorage(STORAGE_KEYS[collectionName as keyof typeof STORAGE_KEYS] || collectionName, defaultValue);
+  }
+};
+
+export const saveDocument = async <T extends { id: string }>(collectionName: string, item: T): Promise<void> => {
+  if (!useFirebase || !db) {
+    const current = getLocalStorage(STORAGE_KEYS[collectionName as keyof typeof STORAGE_KEYS] || collectionName, []);
+    const index = current.findIndex((i: T) => i.id === item.id);
+    if (index >= 0) {
+      current[index] = item;
+    } else {
+      current.push(item);
+    }
+    setLocalStorage(STORAGE_KEYS[collectionName as keyof typeof STORAGE_KEYS] || collectionName, current);
+    return;
+  }
+
+  try {
+    await setDoc(doc(db, collectionName, item.id), item);
+  } catch (error) {
+    console.error(`Error saving ${collectionName}:`, error);
+    throw error;
+  }
+};
+
+export const deleteDocument = async (collectionName: string, id: string): Promise<void> => {
+  if (!useFirebase || !db) {
+    const current = getLocalStorage(STORAGE_KEYS[collectionName as keyof typeof STORAGE_KEYS] || collectionName, []);
+    const filtered = current.filter((item: { id: string }) => item.id !== id);
+    setLocalStorage(STORAGE_KEYS[collectionName as keyof typeof STORAGE_KEYS] || collectionName, filtered);
+    return;
+  }
+
+  try {
+    await deleteDoc(doc(db, collectionName, id));
+  } catch (error) {
+    console.error(`Error deleting ${collectionName}:`, error);
+    throw error;
+  }
+};
+
+export { useFirebase };
+
