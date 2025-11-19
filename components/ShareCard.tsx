@@ -65,7 +65,7 @@ const ShareCard: React.FC<ShareCardProps> = ({ certificate, template }) => {
           zIndex: 20,
           width: '100%',
           maxWidth: '900px',
-          aspectRatio: '1.414 / 1',
+          aspectRatio: '297 / 210',
           borderRadius: '16px',
           overflow: 'hidden',
           backgroundColor: '#ffffff',
@@ -82,10 +82,15 @@ const ShareCard: React.FC<ShareCardProps> = ({ certificate, template }) => {
             width: '100%',
             height: '100%',
             objectFit: 'cover',
+            display: 'block',
           }}
           crossOrigin="anonymous"
           loading="eager"
           decoding="sync"
+          onLoad={(e) => {
+            // Ensure image is visible
+            (e.target as HTMLImageElement).style.opacity = '1';
+          }}
         />
         <div
           style={{
@@ -103,9 +108,25 @@ const ShareCard: React.FC<ShareCardProps> = ({ certificate, template }) => {
             left: `${template.namePosition?.x ?? 50}%`,
             top: `${template.namePosition?.y ?? 50}%`,
             transform: 'translate(-50%, -50%)',
+            whiteSpace: 'nowrap',
           }}
         >
           {certificate.recipientName}
+        </div>
+        <div 
+          style={{ 
+            position: 'absolute',
+            bottom: '24px',
+            right: '32px',
+            fontSize: '10px',
+            fontFamily: 'monospace',
+            color: template.textColor === 'white' ? '#ffffff' : '#0f172a',
+            textShadow: template.textColor === 'white' 
+              ? '0 1px 3px rgba(0,0,0,0.3)' 
+              : '0 1px 3px rgba(255,255,255,0.5)',
+          }}
+        >
+          ID: {certificate.uniqueId}
         </div>
       </div>
 

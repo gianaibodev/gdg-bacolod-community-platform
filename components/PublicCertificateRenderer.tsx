@@ -92,14 +92,37 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
     try {
       const cardElement = shareCardRef.current;
       
-      // Wait for images to load
+      // Wait for images to load and ensure they're visible
       const img = cardElement.querySelector('img') as HTMLImageElement;
-      if (img && (!img.complete || img.naturalWidth === 0)) {
-        await new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => reject(new Error('Image load timeout')), 10000);
-          img.onload = () => { clearTimeout(timeout); resolve(null); };
-          img.onerror = () => { clearTimeout(timeout); reject(new Error('Image failed to load')); };
-        });
+      if (img) {
+        // Ensure image is visible
+        img.style.display = 'block';
+        img.style.opacity = '1';
+        
+        if (!img.complete || img.naturalWidth === 0) {
+          await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Image load timeout')), 10000);
+            img.onload = () => { 
+              clearTimeout(timeout); 
+              img.style.opacity = '1';
+              resolve(null); 
+            };
+            img.onerror = () => { 
+              clearTimeout(timeout); 
+              reject(new Error('Image failed to load')); 
+            };
+            
+            // Force reload if needed
+            if (img.complete && img.naturalWidth === 0) {
+              const src = img.src;
+              img.src = '';
+              img.src = src;
+            }
+          });
+        }
+        // Wait for rendering
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } else {
         await new Promise(resolve => setTimeout(resolve, 300));
       }
 
@@ -108,6 +131,8 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
         quality: 0.85,
         pixelRatio: 2,
         backgroundColor: '#4285F4',
+        cacheBust: true,
+        includeQueryParams: true,
       });
 
       if (!blob) {
@@ -273,17 +298,12 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
         </div>
 
         <div 
-          className="absolute bottom-10 left-12 text-sm tracking-[0.3em] uppercase hidden md:block"
-          style={{ color: 'rgba(255, 255, 255, 0.9)' }}
-        >
-          {template.eventName}
-        </div>
-
-        <div 
-          className="absolute bottom-8 right-12 text-xs font-mono px-3 py-1 rounded-full hidden md:block"
+          className="absolute bottom-6 right-8 text-[10px] md:text-xs font-mono hidden md:block"
           style={{ 
-            color: 'rgba(255, 255, 255, 0.8)',
-            backgroundColor: 'rgba(0, 0, 0, 0.4)'
+            color: template.textColor === 'white' ? '#ffffff' : '#0f172a',
+            textShadow: template.textColor === 'white' 
+              ? '0 1px 3px rgba(0,0,0,0.3)' 
+              : '0 1px 3px rgba(255,255,255,0.5)',
           }}
         >
           ID: {certificate.uniqueId}
