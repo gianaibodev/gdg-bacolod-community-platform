@@ -23,7 +23,9 @@ const CertificateSharePage: React.FC = () => {
 
       try {
         setLoading(true);
+        console.log('Loading certificate with ID:', certId);
         const cert = await getIssuedCertificateById(certId);
+        console.log('Certificate loaded:', cert);
         
         if (!cert) {
           setError('Certificate not found');

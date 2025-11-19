@@ -35,11 +35,11 @@ const CertificateLookup: React.FC = () => {
   useEffect(() => {
     const certId = searchParams.get('certId');
     if (certId) {
-      // Immediately redirect to the dedicated share page
-      navigate(`/certificates/share/${certId}`, { replace: true });
+      // Immediately redirect to the dedicated share page - use window.location for hard redirect
+      window.location.href = `/certificates/share/${certId}`;
       return;
     }
-  }, [searchParams, navigate]);
+  }, [searchParams]);
 
   useEffect(() => {
     // Only load templates if we're not redirecting
