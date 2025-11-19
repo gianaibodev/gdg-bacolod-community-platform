@@ -1,6 +1,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Code2, Cpu, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { HashLink } from 'react-router-hash-link';
 
 const Hero: React.FC = () => {
@@ -94,12 +95,12 @@ const Hero: React.FC = () => {
             View Gallery
           </HashLink>
 
-          <a
-            href="/certificates"
+          <Link
+            to="/certificates"
             className="px-8 py-4 bg-slate-900 text-white rounded-full font-medium text-lg hover:bg-slate-800 transition-all hover:shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             Claim Certificate
-          </a>
+          </Link>
         </div>
 
       </div>

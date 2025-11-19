@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const CertificateShowcase: React.FC = () => {
   return (
@@ -18,18 +19,18 @@ const CertificateShowcase: React.FC = () => {
                 a PDF/PNG with a unique verification ID. Perfect for LinkedIn, portfolios, and recruiting.
               </p>
               <div className="flex flex-wrap gap-3">
-                <a
-                  href="/certificates"
+                <Link
+                  to="/certificates"
                   className="inline-flex items-center justify-center rounded-full bg-slate-900 text-white px-6 py-3 text-sm font-semibold shadow-lg shadow-slate-900/40 hover:bg-slate-800 transition"
                 >
                   Claim your certificate
-                </a>
-                <a
-                  href="/certificates"
+                </Link>
+                <Link
+                  to="/certificates"
                   className="inline-flex items-center justify-center rounded-full border border-slate-300 dark:border-white/20 px-6 py-3 text-sm font-semibold text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition"
                 >
                   View instructions
-                </a>
+                </Link>
               </div>
             </div>
 

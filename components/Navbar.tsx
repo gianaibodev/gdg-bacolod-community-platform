@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Moon, Sun } from 'lucide-react';
-
+import { Link } from 'react-router-dom';
 import { HashLink } from 'react-router-hash-link';
 
 interface NavbarProps {
@@ -75,13 +75,13 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleTheme }) => {
                 {link.name}
               </HashLink>
             ) : (
-              <a
+              <Link
                 key={link.name}
-                href={link.href}
+                to={link.href}
                 className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors relative group/link"
               >
                 {link.name}
-              </a>
+              </Link>
             ),
           )}
           
@@ -142,14 +142,14 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleTheme }) => {
               {link.name}
             </HashLink>
           ) : (
-            <a
+            <Link
               key={link.name}
-              href={link.href}
+              to={link.href}
               onClick={() => setIsOpen(false)}
               className="text-3xl font-bold text-slate-900 dark:text-white hover:text-google-blue transition-colors"
             >
               {link.name}
-            </a>
+            </Link>
           ),
         )}
           <a
