@@ -73,60 +73,93 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
         useCORS: true,
         scale: 2,
         backgroundColor: null,
+        logging: false,
       });
 
       canvas.toBlob(async (blob) => {
         if (!blob) {
-          throw new Error('Canvas blob creation failed');
+          setShareStatus('Could not create image. Try downloading PNG instead.');
+          setSharing(false);
+          return;
         }
 
-        const file = new File([blob], 'certificate-story.png', { type: 'image/png' });
+        try {
+          const file = new File([blob], `certificate-${certificate.eventName.replace(/\s+/g, '-')}.png`, { 
+            type: 'image/png',
+            lastModified: Date.now(),
+          });
 
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({
-              files: [file],
-              title: 'Share to Stories',
-              text: `Just got my certificate for ${certificate.eventName}!`,
-            });
-            setShareStatus('Shared successfully!');
-          } catch (shareError) {
-            if ((shareError as Error).name !== 'AbortError') {
-              console.error('Share API error:', shareError);
-              // Fallback to standard link share if file share fails/aborts but isn't just a cancel
-              shareLinkFallback();
+          // Check if browser supports file sharing
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+              await navigator.share({
+                files: [file],
+                title: `${certificate.eventName} Certificate`,
+                text: `Just got my certificate for ${certificate.eventName}!`,
+              });
+              setShareStatus('Shared successfully!');
+              setSharing(false);
+              return;
+            } catch (shareError: any) {
+              // User cancelled or share failed
+              if (shareError.name === 'AbortError') {
+                setSharing(false);
+                return; // User cancelled, don't show error
+              }
+              console.log('File share failed, trying fallback:', shareError);
+              // Fall through to fallback
             }
           }
-        } else {
-           shareLinkFallback();
+
+          // Fallback: Try sharing as data URL or download
+          const dataUrl = canvas.toDataURL('image/png');
+          if (navigator.share) {
+            // Some browsers support sharing text/URL but not files
+            const shareUrl = `${window.location.origin}/certificates?certId=${certificate.uniqueId}`;
+            try {
+              await navigator.share({
+                title: `${certificate.eventName} Certificate`,
+                text: `Check out my certificate! Download: ${shareUrl}`,
+                url: shareUrl,
+              });
+              setShareStatus('Link shared! Download the PNG to post to Stories.');
+            } catch (linkError: any) {
+              if (linkError.name !== 'AbortError') {
+                // Final fallback: download the image
+                const link = document.createElement('a');
+                link.href = dataUrl;
+                link.download = `certificate-${certificate.eventName.replace(/\s+/g, '-')}.png`;
+                link.click();
+                setShareStatus('Image downloaded! Open it and share to Stories manually.');
+              }
+            }
+          } else {
+            // No share API at all - just download
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = `certificate-${certificate.eventName.replace(/\s+/g, '-')}.png`;
+            link.click();
+            setShareStatus('Image downloaded! Open it and share to Stories manually.');
+          }
+        } catch (error) {
+          console.error('Error in share process:', error);
+          // Last resort: download
+          const dataUrl = canvas.toDataURL('image/png');
+          const link = document.createElement('a');
+          link.href = dataUrl;
+          link.download = `certificate-${certificate.eventName.replace(/\s+/g, '-')}.png`;
+          link.click();
+          setShareStatus('Downloaded! Open the image and share to Stories manually.');
         }
+        
         setSharing(false);
-      }, 'image/png');
+      }, 'image/png', 0.95);
 
     } catch (error) {
-      console.error('Error sharing:', error);
-      setShareStatus('Error sharing. Try downloading instead.');
+      console.error('Error generating canvas:', error);
+      setShareStatus('Error generating image. Try downloading PNG instead.');
       setSharing(false);
     }
-  };
-
-  const shareLinkFallback = async () => {
-      try {
-        const shareUrl = `${window.location.origin}/certificates?certId=${certificate.uniqueId}`;
-        if (navigator.share) {
-             await navigator.share({
-              title: `${certificate.eventName} Certificate`,
-              text: `Check out my certificate from ${certificate.eventName}!`,
-              url: shareUrl,
-            });
-        } else {
-             await navigator.clipboard.writeText(shareUrl);
-             setShareStatus('Link copied to clipboard');
-        }
-      } catch (e) {
-           console.error(e);
-           setShareStatus('Could not share.');
-      }
   };
 
   const nameStyle = template.namePosition
@@ -156,7 +189,7 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
     <div className="space-y-6">
       <div
         ref={previewRef}
-        className="relative w-full max-w-5xl mx-auto aspect-[1/1.414] rounded-[20px] overflow-hidden border border-white/40 shadow-2xl"
+        className="relative w-full max-w-5xl mx-auto aspect-[1.414/1] rounded-[20px] overflow-hidden border border-white/40 shadow-2xl"
       >
         <img
           src={template.templateImageUrl}

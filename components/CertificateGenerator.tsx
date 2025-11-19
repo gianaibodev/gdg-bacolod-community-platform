@@ -152,7 +152,7 @@ const CertificateGenerator: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className={`w-full max-w-[210mm] aspect-[1/1.414] rounded-lg shadow-2xl border relative overflow-hidden ${
+          className={`w-full max-w-[210mm] aspect-[1.414/1] rounded-lg shadow-2xl border relative overflow-hidden ${
             isDevFest
               ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 border-slate-700'
               : 'bg-gradient-to-br from-white via-sky-50 to-slate-50 border-slate-200'
