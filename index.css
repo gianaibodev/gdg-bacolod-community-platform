@@ -1,7 +1,81 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
+@theme {
+  --font-sans: "Google Sans", "Inter", sans-serif;
+  --font-display: "Inter", sans-serif;
+
+  --color-google-blue: #4285F4;
+  --color-google-red: #DB4437;
+  --color-google-yellow: #F4B400;
+  --color-google-green: #0F9D58;
+  --color-google-grey: #F1F3F4;
+
+  --color-dark-bg: #121212;
+  --color-dark-surface: #1E1E1E;
+  --color-dark-border: #2D2D30;
+
+  --animate-orbit: orbit 20s linear infinite;
+  --animate-orbit-reverse: orbit-reverse 25s linear infinite;
+  --animate-float-slow: float 8s ease-in-out infinite;
+  --animate-pulse-glow: pulseGlow 4s ease-in-out infinite;
+  --animate-shimmer: shimmer 2s linear infinite;
+  --animate-blob: blob 7s infinite;
+  --animate-fade-in: fadeIn 1s ease-out forwards;
+  --animate-gradient-x: gradient-x 3s ease infinite;
+
+  @keyframes orbit {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  @keyframes orbit-reverse {
+    0% { transform: rotate(360deg); }
+    100% { transform: rotate(0deg); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.1); }
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  @keyframes blob {
+    0% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(0px, 0px) scale(1); }
+  }
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes gradient-x {
+    0%, 100% {
+      background-size: 200% 200%;
+      background-position: left center;
+    }
+    50% {
+      background-size: 200% 200%;
+      background-position: right center;
+    }
+  }
+}
+
+@utility bg-dot-pattern {
+  background-image: radial-gradient(#E2E8F0 1px, transparent 1px);
+}
+@utility bg-dot-pattern-dark {
+  background-image: radial-gradient(#333333 1px, transparent 1px);
+}
+
+/* Define dark mode variant to use class strategy */
+@variant dark (&:where(.dark, .dark *));
+
+/* Base Styles */
 body {
   background-color: #ffffff;
   color: #111827;
@@ -13,8 +87,8 @@ body {
 }
 
 .dark body {
-  background-color: #121212; /* Softened Dark */
-  color: #E2E8F0; /* Softer White text */
+  background-color: #121212;
+  color: #E2E8F0;
 }
 
 .scrollbar-hide::-webkit-scrollbar { display: none; }
@@ -88,4 +162,3 @@ body {
   mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
 }
-
