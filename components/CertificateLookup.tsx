@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Certificate, CertificateTemplate } from '../types';
 import {
   getCertificateTemplates,
@@ -6,7 +7,7 @@ import {
   saveIssuedCertificate,
 } from '../services/mockCms';
 import PublicCertificateRenderer from './PublicCertificateRenderer';
-import { Loader2, Search, ShieldCheck } from 'lucide-react';
+import { Loader2, Search, ShieldCheck, ArrowLeft, Home } from 'lucide-react';
 
 const normalizeName = (value: string) => value.trim().replace(/\s+/g, ' ').toLowerCase();
 
@@ -98,6 +99,34 @@ const CertificateLookup: React.FC = () => {
 
   return (
     <section className="bg-white dark:bg-[#121212] min-h-screen text-slate-900 dark:text-slate-50">
+      {/* Header with Navigation */}
+      <header className="sticky top-0 z-50 bg-white/95 dark:bg-[#121212]/95 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <Link
+              to="/"
+              className="flex items-center gap-2 text-slate-900 dark:text-white hover:text-google-blue transition-colors group"
+            >
+              <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+              <span className="font-semibold">Back to Home</span>
+            </Link>
+            <Link
+              to="/"
+              className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+            >
+              <img
+                src="https://i.postimg.cc/7CnMJDwq/GDG-Bacolod.png"
+                alt="GDG Bacolod"
+                className="h-8 w-auto object-contain dark:brightness-0 dark:invert"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            </Link>
+          </div>
+        </div>
+      </header>
+
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-12">
           <p className="text-xs font-bold tracking-[0.4em] uppercase text-google-blue mb-4">Certificates</p>
