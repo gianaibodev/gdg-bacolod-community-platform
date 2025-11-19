@@ -28,7 +28,7 @@ const Hero: React.FC = () => {
   return (
     <section 
       ref={containerRef}
-      className="relative min-h-[70vh] md:min-h-[60vh] w-full flex items-center justify-center overflow-hidden bg-white dark:bg-[#121212] pt-20 md:pt-24 pb-12 md:pb-0 transition-colors duration-500"
+      className="relative min-h-[60vh] md:min-h-[60vh] w-full flex items-center justify-center overflow-hidden bg-white dark:bg-[#121212] pt-16 md:pt-24 pb-6 md:pb-0 transition-colors duration-500"
       style={{ perspective: '1000px' }}
     >
       {/* --- TECHNICAL GRID BACKGROUND (UNCHANGED) --- */}
@@ -50,7 +50,7 @@ const Hero: React.FC = () => {
       <div className={`relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
         
         {/* HERO TYPOGRAPHY STACK */}
-        <div className="relative mb-4 mt-4 md:mb-6 md:mt-8">
+        <div className="relative mb-3 mt-2 md:mb-6 md:mt-8">
           {/* Floating 3D Shapes (Decorations) */}
           <div className="absolute -left-4 md:-left-12 top-0 animate-float-slow opacity-100 hidden lg:block">
             <div className="glass-pill p-4 rounded-full shadow-xl dark:bg-white/5 dark:border-white/10">
@@ -68,12 +68,12 @@ const Hero: React.FC = () => {
           </h1>
         </div>
 
-        <p className="text-base md:text-xl text-slate-500 dark:text-slate-400 max-w-3xl mx-auto mb-8 md:mb-10 font-normal leading-relaxed px-4">
+        <p className="text-base md:text-xl text-slate-500 dark:text-slate-400 max-w-3xl mx-auto mb-6 md:mb-10 font-normal leading-relaxed px-4">
           Google Developer Groups are community groups for college and university students interested in Google developer technologies.
         </p>
 
         {/* ACTION ISLAND */}
-        <div className="flex flex-col sm:flex-row gap-4 items-center mb-8">
+        <div className="flex flex-col sm:flex-row gap-3 md:gap-4 items-center mb-4 md:mb-8">
           <a 
             href="https://gdg.community.dev/gdg-bacolod/"
             target="_blank"

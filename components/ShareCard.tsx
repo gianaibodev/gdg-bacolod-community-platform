@@ -16,7 +16,12 @@ const ShareCard: React.FC<ShareCardProps> = ({ certificate, template }) => {
   });
 
   return (
-    <div className="relative w-[1080px] h-[1350px] bg-gradient-to-br from-google-blue via-blue-600 to-blue-800 flex flex-col items-center justify-center p-16 overflow-hidden">
+    <div 
+      className="relative w-[1080px] h-[1350px] flex flex-col items-center justify-center p-16 overflow-hidden"
+      style={{
+        background: 'linear-gradient(to bottom right, #4285F4, #2563eb, #1e40af)',
+      }}
+    >
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0" style={{

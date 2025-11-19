@@ -131,16 +131,32 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
       // Force a reflow
       cardElement.offsetHeight;
       
+      // Convert computed styles to avoid oklab/oklch color issues
+      const computedStyles = window.getComputedStyle(cardElement);
+      const bgColor = computedStyles.backgroundColor || '#4285F4';
+      
       const canvas = await html2canvas(cardElement, {
         useCORS: true,
         scale: 2,
-        backgroundColor: '#1a73e8',
-        logging: true,
-        allowTaint: true,
+        backgroundColor: '#4285F4', // Explicit hex color to avoid oklab parsing
+        logging: false,
+        allowTaint: false,
         width: 1080,
         height: 1350,
         windowWidth: 1080,
         windowHeight: 1350,
+        onclone: (clonedDoc) => {
+          // Convert any oklab/oklch colors to hex in the cloned document
+          const clonedElement = clonedDoc.querySelector('[style*="background"]');
+          if (clonedElement) {
+            const style = window.getComputedStyle(cardElement);
+            const bgColor = style.backgroundColor;
+            if (bgColor && !bgColor.startsWith('#')) {
+              // If it's not hex, try to convert or use fallback
+              (clonedElement as HTMLElement).style.backgroundColor = '#4285F4';
+            }
+          }
+        },
       });
       
       // Restore original styles
