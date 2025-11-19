@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
 import { motion } from 'framer-motion';
 import { Certificate } from '../types';
@@ -36,23 +36,30 @@ const CertificateGenerator: React.FC = () => {
     if (!previewRef.current) return;
     try {
       setDownloading(true);
-      const canvas = await html2canvas(previewRef.current, {
-        scale: 3,
-        useCORS: true,
+      const dataUrl = await toPng(previewRef.current, {
+        quality: 0.95,
+        pixelRatio: 3,
+        backgroundColor: '#ffffff',
       });
 
-      const imgData = canvas.toDataURL('image/png');
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = dataUrl;
+      });
+
       const pdf = new jsPDF('l', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
 
-      const ratio = Math.min(pdfWidth / canvas.width, pdfHeight / canvas.height);
-      const imgWidth = canvas.width * ratio;
-      const imgHeight = canvas.height * ratio;
+      const ratio = Math.min(pdfWidth / img.width, pdfHeight / img.height);
+      const imgWidth = img.width * ratio;
+      const imgHeight = img.height * ratio;
       const x = (pdfWidth - imgWidth) / 2;
       const y = (pdfHeight - imgHeight) / 2;
 
-      pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+      pdf.addImage(dataUrl, 'PNG', x, y, imgWidth, imgHeight);
       pdf.save(`${certificate.recipientName}-${certificate.eventName}-certificate.pdf`);
     } catch (error) {
       console.error('Error generating PDF', error);

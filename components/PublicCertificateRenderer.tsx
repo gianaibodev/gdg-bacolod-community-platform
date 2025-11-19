@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import html2canvas from 'html2canvas';
+import { toPng, toBlob } from 'html-to-image';
 import jsPDF from 'jspdf';
 import { Certificate, CertificateTemplate } from '../types';
 import { ArrowDownToLine, Loader2, Share2 } from 'lucide-react';
@@ -29,24 +29,28 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
     if (!previewRef.current) return;
     setDownloading('pdf');
     try {
-      const canvas = await html2canvas(previewRef.current, { 
-        useCORS: true, 
-        scale: 3,
-        onclone: (clonedDoc) => {
-           const element = clonedDoc.querySelector('[data-html2canvas-ignore]') as HTMLElement;
-           if (element) element.style.display = 'none';
-        }
+      const dataUrl = await toPng(previewRef.current, {
+        quality: 0.95,
+        pixelRatio: 3,
+        backgroundColor: '#ffffff',
       });
-      const imgData = canvas.toDataURL('image/png');
+      
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = dataUrl;
+      });
+      
       const pdf = new jsPDF('l', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const ratio = Math.min(pdfWidth / canvas.width, pdfHeight / canvas.height);
-      const imgWidth = canvas.width * ratio;
-      const imgHeight = canvas.height * ratio;
+      const ratio = Math.min(pdfWidth / img.width, pdfHeight / img.height);
+      const imgWidth = img.width * ratio;
+      const imgHeight = img.height * ratio;
       const x = (pdfWidth - imgWidth) / 2;
       const y = (pdfHeight - imgHeight) / 2;
-      pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+      pdf.addImage(dataUrl, 'PNG', x, y, imgWidth, imgHeight);
       pdf.save(`${certificate.recipientName}-${certificate.eventName}-certificate.pdf`);
     } catch (error) {
       console.error(error);
@@ -60,12 +64,11 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
     if (!previewRef.current) return;
     setDownloading('png');
     try {
-      const canvas = await html2canvas(previewRef.current, { 
-        useCORS: true, 
-        scale: 3,
+      const dataUrl = await toPng(previewRef.current, {
+        quality: 0.95,
+        pixelRatio: 3,
         backgroundColor: null, // Transparent background
       });
-      const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = dataUrl;
       link.download = `${certificate.recipientName}-${certificate.eventName}-certificate.png`;
@@ -89,337 +92,116 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
     try {
       const cardElement = shareCardRef.current;
       
-      // Make element temporarily visible for html2canvas (but keep it off-screen)
-      const originalStyle = {
-        position: cardElement.style.position,
-        left: cardElement.style.left,
-        top: cardElement.style.top,
-        opacity: cardElement.style.opacity,
-        visibility: cardElement.style.visibility,
-        zIndex: cardElement.style.zIndex,
-      };
-      
-      // Position it off-screen but visible to html2canvas
-      // Force all color properties to HEX before making visible
-      cardElement.style.position = 'fixed';
-      cardElement.style.left = '0';
-      cardElement.style.top = '0';
-      cardElement.style.opacity = '1';
-      cardElement.style.visibility = 'visible';
-      cardElement.style.zIndex = '9999';
-      // Force HEX colors on root element to override any CSS classes
-      cardElement.style.backgroundColor = '#4285F4';
-      cardElement.style.color = '#ffffff';
-      cardElement.style.border = 'none';
-      cardElement.style.boxShadow = 'none';
-      
       // Wait for images to load
       const img = cardElement.querySelector('img') as HTMLImageElement;
-      if (img) {
-        if (!img.complete || img.naturalWidth === 0) {
-          await new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => {
-              reject(new Error('Image load timeout'));
-            }, 10000);
-            
-            img.onload = () => {
-              clearTimeout(timeout);
-              resolve(null);
-            };
-            img.onerror = () => {
-              clearTimeout(timeout);
-              reject(new Error('Image failed to load'));
-            };
-            
-            // Force reload if already loaded but broken
-            if (img.complete && img.naturalWidth === 0) {
-              const src = img.src;
-              img.src = '';
-              img.src = src;
-            }
-          });
-        }
-        // Additional wait for rendering
-        await new Promise(resolve => setTimeout(resolve, 500));
-      } else {
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-      
-      // Force a reflow
-      cardElement.offsetHeight;
-      
-      // Convert computed styles to avoid oklab/oklch color issues
-      const computedStyles = window.getComputedStyle(cardElement);
-      const bgColor = computedStyles.backgroundColor || '#4285F4';
-      
-      // Convert all computed styles to safe colors before html2canvas
-      // This function converts ALL color properties to hex/rgb to avoid oklab/oklch parsing
-      const convertToSafeColors = (element: HTMLElement) => {
-        const computed = window.getComputedStyle(element);
-        const styles = element.style;
-        
-        // Helper to convert any color format to hex/rgb
-        const toSafeColor = (colorValue: string, fallback: string): string => {
-          if (!colorValue || colorValue === 'transparent' || colorValue === 'rgba(0, 0, 0, 0)') {
-            return fallback;
-          }
-          if (colorValue.includes('oklab') || colorValue.includes('oklch')) {
-            return fallback;
-          }
-          // If it's already rgb/rgba/hex, keep it
-          if (colorValue.startsWith('#') || colorValue.startsWith('rgb')) {
-            return colorValue;
-          }
-          return fallback;
-        };
-        
-        // Force convert all color properties to inline styles
-        const bgColor = computed.backgroundColor;
-        if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)') {
-          styles.backgroundColor = toSafeColor(bgColor, '#4285F4');
-        }
-        
-        const textColor = computed.color;
-        if (textColor) {
-          // Try to preserve white/black but convert to hex
-          if (textColor.includes('255') || textColor.toLowerCase().includes('white')) {
-            styles.color = '#ffffff';
-          } else if (textColor.includes('0') && !textColor.includes('255')) {
-            styles.color = '#000000';
-          } else {
-            styles.color = toSafeColor(textColor, '#000000');
-          }
-        }
-        
-        // Convert border colors
-        if (computed.borderColor && computed.borderColor !== 'rgba(0, 0, 0, 0)') {
-          styles.borderColor = toSafeColor(computed.borderColor, 'rgba(255, 255, 255, 0.2)');
-        }
-        
-        // Convert box-shadow colors
-        if (computed.boxShadow && computed.boxShadow !== 'none') {
-          // Extract color from box-shadow and convert
-          const shadowMatch = computed.boxShadow.match(/rgba?\([^)]+\)|#[0-9a-fA-F]{3,6}/);
-          if (shadowMatch) {
-            const shadowColor = shadowMatch[0];
-            const safeShadowColor = toSafeColor(shadowColor, 'rgba(0, 0, 0, 0.25)');
-            styles.boxShadow = computed.boxShadow.replace(shadowMatch[0], safeShadowColor);
-          }
-        }
-        
-        // Recursively process all children
-        Array.from(element.children).forEach(child => {
-          convertToSafeColors(child as HTMLElement);
+      if (img && (!img.complete || img.naturalWidth === 0)) {
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => reject(new Error('Image load timeout')), 10000);
+          img.onload = () => { clearTimeout(timeout); resolve(null); };
+          img.onerror = () => { clearTimeout(timeout); reject(new Error('Image failed to load')); };
         });
-      };
-      
-      // Convert all colors in the element tree
-      convertToSafeColors(cardElement);
-      
-      // Wait a bit for styles to apply
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Final pass: Force all elements to use HEX colors only
-      const forceHexColors = (el: HTMLElement) => {
-        const style = el.style;
-        const computed = window.getComputedStyle(el);
-        
-        // Force background to HEX
-        if (computed.backgroundColor && computed.backgroundColor !== 'rgba(0, 0, 0, 0)') {
-          if (computed.backgroundColor.includes('oklch') || computed.backgroundColor.includes('oklab')) {
-            style.backgroundColor = '#4285F4';
-          } else if (!computed.backgroundColor.startsWith('#') && !computed.backgroundColor.startsWith('rgb')) {
-            style.backgroundColor = '#4285F4';
-          }
-        }
-        
-        // Force text color to HEX
-        if (computed.color) {
-          if (computed.color.includes('oklch') || computed.color.includes('oklab')) {
-            style.color = computed.color.includes('255') || computed.color.includes('white') ? '#ffffff' : '#000000';
-          } else if (!computed.color.startsWith('#') && !computed.color.startsWith('rgb')) {
-            style.color = computed.color.includes('255') || computed.color.includes('white') ? '#ffffff' : '#000000';
-          }
-        }
-        
-        // Process children
-        Array.from(el.children).forEach(child => forceHexColors(child as HTMLElement));
-      };
-      
-      forceHexColors(cardElement);
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
-      const canvas = await html2canvas(cardElement, {
-        useCORS: true,
-        scale: 2,
-        backgroundColor: '#4285F4', // Force HEX background
-        logging: false,
-        allowTaint: false,
-        width: 1080,
-        height: 1350,
-        windowWidth: 1080,
-        windowHeight: 1350,
-        onclone: (clonedDoc, element) => {
-          // Force convert all colors in cloned document to safe formats
-          const allElements = clonedDoc.querySelectorAll('*');
-          allElements.forEach((el) => {
-            const htmlEl = el as HTMLElement;
-            const computed = window.getComputedStyle(htmlEl);
-            
-            // Convert all color properties
-            if (computed.backgroundColor) {
-              if (computed.backgroundColor.includes('oklab') || computed.backgroundColor.includes('oklch')) {
-                htmlEl.style.backgroundColor = '#4285F4';
-              } else if (!computed.backgroundColor.startsWith('#') && !computed.backgroundColor.startsWith('rgb')) {
-                // If it's not a safe format, force to hex
-                htmlEl.style.backgroundColor = '#4285F4';
-              }
-            }
-            
-            if (computed.color) {
-              if (computed.color.includes('oklab') || computed.color.includes('oklch')) {
-                htmlEl.style.color = computed.color.includes('255') || computed.color.includes('white') ? '#ffffff' : '#000000';
-              } else if (!computed.color.startsWith('#') && !computed.color.startsWith('rgb')) {
-                htmlEl.style.color = computed.color.includes('255') || computed.color.includes('white') ? '#ffffff' : '#000000';
-              }
-            }
-            
-            if (computed.borderColor) {
-              if (computed.borderColor.includes('oklab') || computed.borderColor.includes('oklch')) {
-                htmlEl.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-              } else if (!computed.borderColor.startsWith('#') && !computed.borderColor.startsWith('rgb')) {
-                htmlEl.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-              }
-            }
-            
-            // Convert box-shadow
-            if (computed.boxShadow && computed.boxShadow !== 'none') {
-              if (computed.boxShadow.includes('oklab') || computed.boxShadow.includes('oklch')) {
-                htmlEl.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.25)';
-              }
-            }
-          });
-        },
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+
+      // Generate blob directly using html-to-image (supports oklch natively)
+      const blob = await toBlob(cardElement, {
+        quality: 0.95,
+        pixelRatio: 2,
+        backgroundColor: '#4285F4',
       });
-      
-      // Restore original styles
-      cardElement.style.position = originalStyle.position;
-      cardElement.style.left = originalStyle.left;
-      cardElement.style.top = originalStyle.top;
-      cardElement.style.opacity = originalStyle.opacity;
-      cardElement.style.visibility = originalStyle.visibility;
-      cardElement.style.zIndex = originalStyle.zIndex;
 
-      canvas.toBlob(async (blob) => {
-        if (!blob) {
-          setShareStatus('Could not create image. Try downloading PNG instead.');
-          setSharing(false);
-          return;
-        }
+      if (!blob) {
+        setShareStatus('Could not create image. Try downloading PNG instead.');
+        setSharing(false);
+        return;
+      }
 
-        try {
-          const file = new File([blob], `certificate-${certificate.eventName.replace(/\s+/g, '-')}.png`, { 
-            type: 'image/png',
-            lastModified: Date.now(),
-          });
+      try {
+        const file = new File([blob], `certificate-${certificate.eventName.replace(/\s+/g, '-')}.png`, { 
+          type: 'image/png',
+          lastModified: Date.now(),
+        });
 
-          // Check if browser supports file sharing
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            try {
-              await navigator.share({
-                files: [file],
-                title: `${certificate.eventName} Certificate`,
-                text: `Just got my certificate for ${certificate.eventName}!`,
-              });
-              setShareStatus('Shared successfully!');
+        // Check if browser supports file sharing
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: `${certificate.eventName} Certificate`,
+              text: `Just got my certificate for ${certificate.eventName}!`,
+            });
+            setShareStatus('Shared successfully!');
+            setSharing(false);
+            return;
+          } catch (shareError: any) {
+            if (shareError.name === 'AbortError') {
               setSharing(false);
               return;
-            } catch (shareError: any) {
-              // User cancelled or share failed
-              if (shareError.name === 'AbortError') {
-                setSharing(false);
-                return; // User cancelled, don't show error
-              }
-              console.log('File share failed, trying fallback:', shareError);
-              // Fall through to fallback
             }
+            console.log('File share failed, trying fallback:', shareError);
           }
+        }
 
-          // Fallback: Try sharing as data URL or download
-          const dataUrl = canvas.toDataURL('image/png');
-          if (navigator.share) {
-            // Some browsers support sharing text/URL but not files
-            const shareUrl = `${window.location.origin}/certificates?certId=${certificate.uniqueId}`;
-            try {
-              await navigator.share({
-                title: `${certificate.eventName} Certificate`,
-                text: `Check out my certificate! Download: ${shareUrl}`,
-                url: shareUrl,
-              });
-              setShareStatus('Link shared! Download the PNG to post to Stories.');
-            } catch (linkError: any) {
-              if (linkError.name !== 'AbortError') {
-                // Final fallback: download the image
-                const link = document.createElement('a');
-                link.href = dataUrl;
-                link.download = `certificate-${certificate.eventName.replace(/\s+/g, '-')}.png`;
-                link.click();
-                setShareStatus('Image downloaded! Open it and share to Stories manually.');
-              }
+        // Fallback: Try sharing as URL or download
+        const dataUrl = URL.createObjectURL(blob);
+        if (navigator.share) {
+          const shareUrl = `${window.location.origin}/certificates?certId=${certificate.uniqueId}`;
+          try {
+            await navigator.share({
+              title: `${certificate.eventName} Certificate`,
+              text: `Check out my certificate! Download: ${shareUrl}`,
+              url: shareUrl,
+            });
+            setShareStatus('Link shared! Download the PNG to post to Stories.');
+          } catch (linkError: any) {
+            if (linkError.name !== 'AbortError') {
+              const link = document.createElement('a');
+              link.href = dataUrl;
+              link.download = `certificate-${certificate.eventName.replace(/\s+/g, '-')}.png`;
+              link.click();
+              setShareStatus('Image downloaded! Open it and share to Stories manually.');
             }
-          } else {
-            // No share API at all - just download
-            const link = document.createElement('a');
-            link.href = dataUrl;
-            link.download = `certificate-${certificate.eventName.replace(/\s+/g, '-')}.png`;
-            link.click();
-            setShareStatus('Image downloaded! Open it and share to Stories manually.');
           }
-        } catch (error) {
-          console.error('Error in share process:', error);
-          // Last resort: download
-          const dataUrl = canvas.toDataURL('image/png');
+        } else {
           const link = document.createElement('a');
           link.href = dataUrl;
           link.download = `certificate-${certificate.eventName.replace(/\s+/g, '-')}.png`;
           link.click();
-          setShareStatus('Downloaded! Open the image and share to Stories manually.');
+          setShareStatus('Image downloaded! Open it and share to Stories manually.');
         }
-        
-        setSharing(false);
-      }, 'image/png', 0.95);
-
-    } catch (error: any) {
-      console.error('Error generating canvas:', error);
-      
-      // Restore styles in case of error
-      if (shareCardRef.current) {
-        shareCardRef.current.style.position = '';
-        shareCardRef.current.style.left = '';
-        shareCardRef.current.style.top = '';
-        shareCardRef.current.style.opacity = '';
-        shareCardRef.current.style.visibility = '';
-        shareCardRef.current.style.zIndex = '';
+      } catch (error) {
+        console.error('Error in share process:', error);
+        const dataUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = `certificate-${certificate.eventName.replace(/\s+/g, '-')}.png`;
+        link.click();
+        setShareStatus('Downloaded! Open the image and share to Stories manually.');
       }
+      
+      setSharing(false);
+    } catch (error: any) {
+      console.error('Error generating image:', error);
       
       // Fallback: try using the regular certificate preview
       try {
         if (previewRef.current) {
-          const canvas = await html2canvas(previewRef.current, {
-            useCORS: true,
-            scale: 2,
+          const blob = await toBlob(previewRef.current, {
+            quality: 0.95,
+            pixelRatio: 2,
             backgroundColor: null,
-            logging: false,
           });
           
-          const dataUrl = canvas.toDataURL('image/png');
-          const link = document.createElement('a');
-          link.href = dataUrl;
-          link.download = `certificate-${certificate.eventName.replace(/\s+/g, '-')}.png`;
-          link.click();
-          setShareStatus('Certificate downloaded! Share it manually.');
-          setSharing(false);
-          return;
+          if (blob) {
+            const dataUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = `certificate-${certificate.eventName.replace(/\s+/g, '-')}.png`;
+            link.click();
+            setShareStatus('Certificate downloaded! Share it manually.');
+            setSharing(false);
+            return;
+          }
         }
       } catch (fallbackError) {
         console.error('Fallback also failed:', fallbackError);
