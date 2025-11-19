@@ -59,9 +59,10 @@ export interface CertificateTemplate {
   eventName: string;
   templateImageUrl: string;
   theme: 'devfest' | 'io';
+  textColor?: 'black' | 'white';
   namePosition?: {
-    xPercent: number; // 0-100 relative position on canvas
-    yPercent: number;
+    x: number; // 0-100 relative position on canvas
+    y: number;
   };
 }
 

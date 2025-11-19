@@ -13,6 +13,7 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
   const previewRef = useRef<HTMLDivElement | null>(null);
   const [downloading, setDownloading] = useState<'pdf' | 'png' | null>(null);
   const [shareStatus, setShareStatus] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
 
   const formattedDate = new Date(certificate.date).toLocaleDateString(undefined, {
     year: 'numeric',
@@ -26,14 +27,14 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
     try {
       const canvas = await html2canvas(previewRef.current, { useCORS: true, scale: 3 });
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('landscape', 'pt', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
+      const pdf = new jsPDF('l', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const ratio = Math.min(pdfWidth / canvas.width, pdfHeight / canvas.height);
       const imgWidth = canvas.width * ratio;
       const imgHeight = canvas.height * ratio;
-      const x = (pageWidth - imgWidth) / 2;
-      const y = (pageHeight - imgHeight) / 2;
+      const x = (pdfWidth - imgWidth) / 2;
+      const y = (pdfHeight - imgHeight) / 2;
       pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
       pdf.save(`${certificate.recipientName}-${certificate.eventName}-certificate.pdf`);
     } catch (error) {
@@ -63,29 +64,75 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
   };
 
   const handleShare = async () => {
+    if (!previewRef.current) return;
+    setSharing(true);
+    setShareStatus(null);
+
     try {
-      const shareUrl = `${window.location.origin}/certificates?certId=${certificate.uniqueId}`;
-      if (navigator.share) {
-        await navigator.share({
-          title: `${certificate.eventName} Certificate`,
-          text: `Check out my certificate from ${certificate.eventName}!`,
-          url: shareUrl,
-        });
-      } else {
-        await navigator.clipboard.writeText(shareUrl);
-        setShareStatus('Link copied to clipboard');
-        setTimeout(() => setShareStatus(null), 4000);
-      }
+      const canvas = await html2canvas(previewRef.current, {
+        useCORS: true,
+        scale: 2,
+        backgroundColor: null,
+      });
+
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          throw new Error('Canvas blob creation failed');
+        }
+
+        const file = new File([blob], 'certificate-story.png', { type: 'image/png' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: 'Share to Stories',
+              text: `Just got my certificate for ${certificate.eventName}!`,
+            });
+            setShareStatus('Shared successfully!');
+          } catch (shareError) {
+            if ((shareError as Error).name !== 'AbortError') {
+              console.error('Share API error:', shareError);
+              // Fallback to standard link share if file share fails/aborts but isn't just a cancel
+              shareLinkFallback();
+            }
+          }
+        } else {
+           shareLinkFallback();
+        }
+        setSharing(false);
+      }, 'image/png');
+
     } catch (error) {
-      console.error(error);
-      setShareStatus('Unable to share automatically. Copy the link manually.');
+      console.error('Error sharing:', error);
+      setShareStatus('Error sharing. Try downloading instead.');
+      setSharing(false);
     }
+  };
+
+  const shareLinkFallback = async () => {
+      try {
+        const shareUrl = `${window.location.origin}/certificates?certId=${certificate.uniqueId}`;
+        if (navigator.share) {
+             await navigator.share({
+              title: `${certificate.eventName} Certificate`,
+              text: `Check out my certificate from ${certificate.eventName}!`,
+              url: shareUrl,
+            });
+        } else {
+             await navigator.clipboard.writeText(shareUrl);
+             setShareStatus('Link copied to clipboard');
+        }
+      } catch (e) {
+           console.error(e);
+           setShareStatus('Could not share.');
+      }
   };
 
   const nameStyle = template.namePosition
     ? {
-        left: `${template.namePosition.xPercent}%`,
-        top: `${template.namePosition.yPercent}%`,
+        left: `${template.namePosition.x}%`,
+        top: `${template.namePosition.y}%`,
         transform: 'translate(-50%, -50%)',
       }
     : {
@@ -93,38 +140,43 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
         top: '50%',
         transform: 'translate(-50%, -50%)',
       };
+  
+  const textColorClass = template.textColor === 'white' 
+     ? 'text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.4)]' 
+     : 'text-slate-900 drop-shadow-[0_1px_6px_rgba(255,255,255,0.9)]';
 
-  const themeClasses =
-    template.theme === 'devfest'
+  // Fallback for old templates without textColor
+  const legacyThemeClass = template.theme === 'devfest'
       ? 'text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.4)]'
       : 'text-slate-900 drop-shadow-[0_1px_6px_rgba(255,255,255,0.9)]';
+
+  const finalClassName = template.textColor ? textColorClass : legacyThemeClass;
 
   return (
     <div className="space-y-6">
       <div
         ref={previewRef}
-        className="relative w-full max-w-5xl mx-auto aspect-[16/9] rounded-[36px] overflow-hidden border border-white/40 shadow-2xl"
+        className="relative w-full max-w-5xl mx-auto aspect-[1/1.414] rounded-[20px] overflow-hidden border border-white/40 shadow-2xl"
       >
         <img
           src={template.templateImageUrl}
           alt={`${template.eventName} certificate template`}
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/30" />
-
+        
         <div
-          className={`absolute text-2xl md:text-5xl font-black tracking-tight text-center px-4 ${themeClasses}`}
+          className={`absolute text-2xl md:text-5xl font-black tracking-tight text-center px-4 ${finalClassName}`}
           style={nameStyle}
         >
           {certificate.recipientName}
         </div>
 
-        <div className="absolute bottom-10 left-12 text-white/90 text-sm tracking-[0.3em] uppercase">
+        <div className="absolute bottom-10 left-12 text-white/90 text-sm tracking-[0.3em] uppercase hidden md:block">
           {template.eventName}
         </div>
 
-        <div className="absolute bottom-8 right-12 text-xs font-mono text-white/80 bg-black/40 px-3 py-1 rounded-full">
-          Cert ID: {certificate.uniqueId}
+        <div className="absolute bottom-8 right-12 text-xs font-mono text-white/80 bg-black/40 px-3 py-1 rounded-full hidden md:block">
+          ID: {certificate.uniqueId}
         </div>
       </div>
 
@@ -136,7 +188,7 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
           className="inline-flex items-center gap-2 rounded-full bg-slate-900 text-white px-5 py-2 text-sm font-semibold shadow-lg shadow-slate-900/30 hover:bg-slate-800 disabled:opacity-60"
         >
           {downloading === 'pdf' ? <Loader2 size={16} className="animate-spin" /> : <ArrowDownToLine size={16} />}
-          Download PDF
+          PDF
         </button>
         <button
           type="button"
@@ -145,21 +197,22 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
           className="inline-flex items-center gap-2 rounded-full bg-white text-slate-900 px-5 py-2 text-sm font-semibold border border-slate-200 shadow hover:bg-slate-50 disabled:opacity-60"
         >
           {downloading === 'png' ? <Loader2 size={16} className="animate-spin" /> : <ArrowDownToLine size={16} />}
-          Download PNG
+          PNG
         </button>
         <button
           type="button"
           onClick={handleShare}
-          className="inline-flex items-center gap-2 rounded-full bg-google-blue text-white px-5 py-2 text-sm font-semibold shadow hover:bg-blue-600"
+          disabled={sharing}
+          className="inline-flex items-center gap-2 rounded-full bg-google-blue text-white px-5 py-2 text-sm font-semibold shadow hover:bg-blue-600 disabled:opacity-70"
         >
-          <Share2 size={16} />
-          Share
+          {sharing ? <Loader2 size={16} className="animate-spin" /> : <Share2 size={16} />}
+          Share to Stories
         </button>
       </div>
 
       <div className="text-center text-sm text-slate-500">
-        Issued on {formattedDate}. Save the PNG and post it to Instagram or Facebook Stories!
-        {shareStatus && <span className="ml-2 font-semibold text-slate-700">{shareStatus}</span>}
+        Issued on {formattedDate}.
+        {shareStatus && <span className="block mt-1 font-semibold text-google-blue">{shareStatus}</span>}
       </div>
     </div>
   );

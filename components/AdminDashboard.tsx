@@ -686,6 +686,8 @@ const createEmptyTemplate = (): CertificateTemplate => ({
   eventName: '',
   templateImageUrl: '',
   theme: 'devfest',
+  textColor: 'black',
+  namePosition: { x: 50, y: 50 },
 });
 
 const CertificatesManager: React.FC = () => {
@@ -739,7 +741,7 @@ const CertificatesManager: React.FC = () => {
     setCsvMessage(null);
   };
 
-  const handleTemplateChange = (field: keyof CertificateTemplate, value: string) => {
+  const handleTemplateChange = (field: keyof CertificateTemplate, value: string | number | object) => {
     setFormState(prev => ({
       ...prev,
       [field]: value,
@@ -1008,6 +1010,53 @@ const CertificatesManager: React.FC = () => {
               </div>
             </div>
           </div>
+
+          <div className="col-span-2">
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Text Color & Position</label>
+              <div className="flex flex-wrap gap-4 items-center p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleTemplateChange('textColor', 'black' as any)}
+                    className={`w-8 h-8 rounded-full border-2 ${formState.textColor === 'black' ? 'border-google-blue ring-2 ring-google-blue/20' : 'border-slate-300'}`}
+                    style={{ backgroundColor: 'black' }}
+                    title="Black Text"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleTemplateChange('textColor', 'white' as any)}
+                    className={`w-8 h-8 rounded-full border-2 ${formState.textColor === 'white' ? 'border-google-blue ring-2 ring-google-blue/20' : 'border-slate-300'}`}
+                    style={{ backgroundColor: 'white' }}
+                    title="White Text"
+                  />
+                </div>
+                <div className="h-8 w-px bg-slate-200" />
+                <div className="flex gap-4">
+                   <div>
+                     <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1 block">X Pos (%)</label>
+                     <input
+                       type="number"
+                       min="0"
+                       max="100"
+                       value={formState.namePosition?.x ?? 50}
+                       onChange={e => setFormState(prev => ({ ...prev, namePosition: { ...prev.namePosition, x: Number(e.target.value), y: prev.namePosition?.y ?? 50 } }))}
+                       className="w-20 px-2 py-1 rounded border border-slate-200 text-sm"
+                     />
+                   </div>
+                   <div>
+                     <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1 block">Y Pos (%)</label>
+                     <input
+                       type="number"
+                       min="0"
+                       max="100"
+                       value={formState.namePosition?.y ?? 50}
+                       onChange={e => setFormState(prev => ({ ...prev, namePosition: { ...prev.namePosition, y: Number(e.target.value), x: prev.namePosition?.x ?? 50 } }))}
+                       className="w-20 px-2 py-1 rounded border border-slate-200 text-sm"
+                     />
+                   </div>
+                </div>
+              </div>
+            </div>
 
           <div className="flex items-center gap-3">
             <button

@@ -42,15 +42,15 @@ const CertificateGenerator: React.FC = () => {
       });
 
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('landscape', 'pt', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
+      const pdf = new jsPDF('l', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
 
-      const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
+      const ratio = Math.min(pdfWidth / canvas.width, pdfHeight / canvas.height);
       const imgWidth = canvas.width * ratio;
       const imgHeight = canvas.height * ratio;
-      const x = (pageWidth - imgWidth) / 2;
-      const y = (pageHeight - imgHeight) / 2;
+      const x = (pdfWidth - imgWidth) / 2;
+      const y = (pdfHeight - imgHeight) / 2;
 
       pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
       pdf.save(`${certificate.recipientName}-${certificate.eventName}-certificate.pdf`);
@@ -152,7 +152,7 @@ const CertificateGenerator: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className={`w-full max-w-3xl aspect-[16/9] rounded-3xl shadow-2xl border relative overflow-hidden ${
+          className={`w-full max-w-[210mm] aspect-[1/1.414] rounded-lg shadow-2xl border relative overflow-hidden ${
             isDevFest
               ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 border-slate-700'
               : 'bg-gradient-to-br from-white via-sky-50 to-slate-50 border-slate-200'
