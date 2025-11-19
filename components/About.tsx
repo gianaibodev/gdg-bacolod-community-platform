@@ -52,6 +52,51 @@ const About: React.FC = () => {
     imgRef.current.style.transform = 'scale(1) translateX(0) translateY(0)';
   };
 
+  // Gyroscope support for mobile devices
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.DeviceOrientationEvent) {
+      return;
+    }
+
+    const handleOrientation = (e: DeviceOrientationEvent) => {
+      if (!cardRef.current || !imgRef.current) return;
+      if (e.beta === null || e.gamma === null) return;
+      
+      // Convert device orientation to card tilt
+      // beta: -180 to 180 (front-back tilt) -> rotateX
+      // gamma: -90 to 90 (left-right tilt) -> rotateY
+      const rotateX = ((e.beta - 45) / 90) * -10; // Map beta to -10 to 10, centered around 45
+      const rotateY = (e.gamma / 90) * 10; // Map gamma to -10 to 10
+      
+      // Clamp values
+      const clampedRotateX = Math.max(-10, Math.min(10, rotateX));
+      const clampedRotateY = Math.max(-10, Math.min(10, rotateY));
+      
+      cardRef.current.style.transform = `perspective(1000px) rotateX(${clampedRotateX}deg) rotateY(${clampedRotateY}deg)`;
+      imgRef.current.style.transform = `scale(1.1) translateX(${clampedRotateY * 2}px) translateY(${clampedRotateX * 2}px)`;
+    };
+
+    // Request permission for iOS 13+
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission()
+        .then((response) => {
+          if (response === 'granted') {
+            window.addEventListener('deviceorientation', handleOrientation);
+          }
+        })
+        .catch((error) => {
+          console.error('Device orientation permission denied:', error);
+        });
+    } else {
+      // For Android and older iOS
+      window.addEventListener('deviceorientation', handleOrientation);
+    }
+
+    return () => {
+      window.removeEventListener('deviceorientation', handleOrientation);
+    };
+  }, []);
+
   return (
     <section 
       id="about" 

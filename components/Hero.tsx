@@ -21,8 +21,45 @@ const Hero: React.FC = () => {
       containerRef.current.style.setProperty('--mouse-y', `${y}deg`);
     };
 
+    // Gyroscope support for mobile devices
+    const handleOrientation = (e: DeviceOrientationEvent) => {
+      if (!containerRef.current) return;
+      if (e.beta === null || e.gamma === null) return;
+      
+      // Convert device orientation to orbital movement
+      // gamma: -90 to 90 (left-right tilt) -> x axis
+      // beta: -180 to 180 (front-back tilt) -> y axis
+      const x = (e.gamma / 90) * 10; // Map to -10 to 10
+      const y = ((e.beta - 45) / 90) * 10; // Map to -10 to 10, centered around 45
+      
+      containerRef.current.style.setProperty('--mouse-x', `${x}deg`);
+      containerRef.current.style.setProperty('--mouse-y', `${y}deg`);
+    };
+
     window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    
+    // Request permission for iOS 13+
+    if (typeof DeviceOrientationEvent !== 'undefined') {
+      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+          .then((response) => {
+            if (response === 'granted') {
+              window.addEventListener('deviceorientation', handleOrientation);
+            }
+          })
+          .catch((error) => {
+            console.error('Device orientation permission denied:', error);
+          });
+      } else {
+        // For Android and older iOS
+        window.addEventListener('deviceorientation', handleOrientation);
+      }
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('deviceorientation', handleOrientation);
+    };
   }, []);
 
   return (
