@@ -129,6 +129,11 @@ const CertificateSharePage: React.FC = () => {
     day: 'numeric',
     year: 'numeric',
   });
+  const formattedTime = date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
 
   return (
     <div className="relative min-h-screen bg-white dark:bg-[#121212] text-slate-900 dark:text-slate-50 overflow-hidden">
@@ -207,7 +212,7 @@ const CertificateSharePage: React.FC = () => {
             </p>
             <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                Issued on <span className="font-semibold text-slate-700 dark:text-slate-300">{formattedDate}</span> • Certificate ID: <span className="font-mono text-google-blue">{certificate.uniqueId}</span>
+                Issued on <span className="font-semibold text-slate-700 dark:text-slate-300">{formattedDate} at {formattedTime}</span> • Certificate ID: <span className="font-mono text-google-blue">{certificate.uniqueId}</span>
               </p>
             </div>
           </div>
