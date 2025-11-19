@@ -102,87 +102,47 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
         zIndex: cardElement.style.zIndex,
       };
       
-      // Position off-screen but visible to browser for image loading
+      // Make element visible on screen (but off to the side) for proper image loading
       cardElement.style.visibility = 'visible';
       cardElement.style.position = 'fixed';
-      cardElement.style.left = '-10000px';
+      cardElement.style.left = '0';
       cardElement.style.top = '0';
       cardElement.style.opacity = '1';
       cardElement.style.zIndex = '9999';
+      cardElement.style.width = '1080px';
+      cardElement.style.height = '1350px';
       
-      // Preload the certificate image first with CORS handling
-      const imageLoader = new Image();
-      imageLoader.crossOrigin = 'anonymous';
-      
-      // Create a promise that resolves when image is fully loaded
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          console.error('Image preload timeout');
-          reject(new Error('Image load timeout'));
-        }, 20000);
-        
-        imageLoader.onload = () => {
-          clearTimeout(timeout);
-          console.log('Image preloaded successfully');
-          resolve();
-        };
-        
-        imageLoader.onerror = (err) => {
-          clearTimeout(timeout);
-          console.error('Image preload error:', err);
-          reject(new Error('Certificate image failed to load'));
-        };
-        
-        // Set source after handlers are attached
-        imageLoader.src = template.templateImageUrl;
-      });
-      
-      // Wait for images to load in the ShareCard
+      // Wait for the image to load
       const img = cardElement.querySelector('img') as HTMLImageElement;
       if (img) {
-        // Ensure the image element has the loaded source
-        if (img.src !== template.templateImageUrl) {
-          img.src = template.templateImageUrl;
-        }
-        img.style.display = 'block';
-        img.style.opacity = '1';
-        img.style.visibility = 'visible';
-        img.style.backgroundColor = '#ffffff';
+        // Force image reload
+        const imgSrc = img.src;
+        img.src = '';
+        img.src = imgSrc;
         
-        // Wait for the img element to be fully rendered
+        // Wait for image to load
         if (!img.complete || img.naturalWidth === 0) {
           await new Promise<void>((resolve, reject) => {
             const timeout = setTimeout(() => {
-              console.error('Image element render timeout');
-              reject(new Error('Image element load timeout'));
-            }, 15000);
+              reject(new Error('Image load timeout'));
+            }, 30000);
             
-            const checkImage = () => {
-              if (img.complete && img.naturalWidth > 0) {
-                clearTimeout(timeout);
-                resolve();
-              }
-            };
-            
-            img.onload = checkImage;
-            img.onerror = () => {
-              clearTimeout(timeout);
-              reject(new Error('Image element failed to load'));
-            };
-            
-            // If already loaded, resolve immediately
-            if (img.complete && img.naturalWidth > 0) {
+            img.onload = () => {
               clearTimeout(timeout);
               resolve();
-            }
+            };
+            
+            img.onerror = () => {
+              clearTimeout(timeout);
+              reject(new Error('Image failed to load'));
+            };
           });
         }
         
-        // Additional wait for rendering and layout
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Wait for rendering
+        await new Promise(resolve => setTimeout(resolve, 2000));
       } else {
-        console.warn('No image element found in ShareCard');
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
       // Generate blob directly using html-to-image (supports oklch natively)

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { ArrowDownToLine, Share2 } from 'lucide-react';
 import { Certificate } from '../types';
@@ -33,6 +33,50 @@ const HolographicCard: React.FC<HolographicCardProps> = ({ certificate, onDownlo
     x.set(0);
     y.set(0);
   };
+
+  // Gyroscope support for mobile devices
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.DeviceOrientationEvent) {
+      return;
+    }
+
+    const handleOrientation = (e: DeviceOrientationEvent) => {
+      if (e.beta === null || e.gamma === null) return;
+      
+      // Convert device orientation to card tilt
+      // beta: -180 to 180 (front-back tilt)
+      // gamma: -90 to 90 (left-right tilt)
+      const posX = (e.gamma / 90) * 50; // Map gamma to -50 to 50
+      const posY = ((e.beta - 45) / 90) * 50; // Map beta to -50 to 50, centered around 45
+      
+      // Clamp values
+      const clampedX = Math.max(-50, Math.min(50, posX));
+      const clampedY = Math.max(-50, Math.min(50, posY));
+      
+      x.set(clampedX);
+      y.set(clampedY);
+    };
+
+    // Request permission for iOS 13+
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission()
+        .then((response) => {
+          if (response === 'granted') {
+            window.addEventListener('deviceorientation', handleOrientation);
+          }
+        })
+        .catch((error) => {
+          console.error('Device orientation permission denied:', error);
+        });
+    } else {
+      // For Android and older iOS
+      window.addEventListener('deviceorientation', handleOrientation);
+    }
+
+    return () => {
+      window.removeEventListener('deviceorientation', handleOrientation);
+    };
+  }, [x, y]);
 
   const formattedDate = new Date(certificate.date).toLocaleDateString(undefined, {
     year: 'numeric',

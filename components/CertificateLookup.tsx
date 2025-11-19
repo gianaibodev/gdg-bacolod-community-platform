@@ -31,7 +31,21 @@ const CertificateLookup: React.FC = () => {
   const [status, setStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [result, setResult] = useState<{ certificate: Certificate; template: CertificateTemplate } | null>(null);
 
+  // Redirect to share page if certId is present in query params (do this FIRST)
   useEffect(() => {
+    const certId = searchParams.get('certId');
+    if (certId) {
+      // Immediately redirect to the dedicated share page
+      navigate(`/certificates/share/${certId}`, { replace: true });
+      return;
+    }
+  }, [searchParams, navigate]);
+
+  useEffect(() => {
+    // Only load templates if we're not redirecting
+    const certId = searchParams.get('certId');
+    if (certId) return; // Skip if redirecting
+    
     const load = async () => {
       setLoadingTemplates(true);
       try {
@@ -45,16 +59,7 @@ const CertificateLookup: React.FC = () => {
       }
     };
     load();
-  }, []);
-
-  // Redirect to share page if certId is present in query params
-  useEffect(() => {
-    const certId = searchParams.get('certId');
-    if (certId) {
-      // Redirect to the dedicated share page
-      navigate(`/certificates/share/${certId}`, { replace: true });
-    }
-  }, [searchParams, navigate]);
+  }, [searchParams]);
 
   const handleLookup = async (event: React.FormEvent) => {
     event.preventDefault();
