@@ -92,38 +92,68 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
     try {
       const cardElement = shareCardRef.current;
       
-      // Wait for images to load and ensure they're visible
+      // Make element temporarily visible for image loading (but keep it off-screen)
+      const originalStyles = {
+        visibility: cardElement.style.visibility,
+        position: cardElement.style.position,
+        left: cardElement.style.left,
+        top: cardElement.style.top,
+        opacity: cardElement.style.opacity,
+        zIndex: cardElement.style.zIndex,
+      };
+      
+      // Position off-screen but visible to browser for image loading
+      cardElement.style.visibility = 'visible';
+      cardElement.style.position = 'fixed';
+      cardElement.style.left = '-10000px';
+      cardElement.style.top = '0';
+      cardElement.style.opacity = '1';
+      cardElement.style.zIndex = '9999';
+      
+      // Preload the certificate image first
+      const imageLoader = new Image();
+      imageLoader.crossOrigin = 'anonymous';
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Image load timeout')), 15000);
+        imageLoader.onload = () => {
+          clearTimeout(timeout);
+          resolve(null);
+        };
+        imageLoader.onerror = () => {
+          clearTimeout(timeout);
+          reject(new Error('Certificate image failed to load'));
+        };
+        imageLoader.src = template.templateImageUrl;
+      });
+      
+      // Wait for images to load in the ShareCard
       const img = cardElement.querySelector('img') as HTMLImageElement;
       if (img) {
-        // Ensure image is visible
+        // Set the image source to ensure it loads
+        img.src = template.templateImageUrl;
         img.style.display = 'block';
         img.style.opacity = '1';
+        img.style.visibility = 'visible';
         
+        // Wait for the img element to load
         if (!img.complete || img.naturalWidth === 0) {
           await new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => reject(new Error('Image load timeout')), 10000);
-            img.onload = () => { 
-              clearTimeout(timeout); 
-              img.style.opacity = '1';
-              resolve(null); 
+            const timeout = setTimeout(() => reject(new Error('Image element load timeout')), 10000);
+            img.onload = () => {
+              clearTimeout(timeout);
+              resolve(null);
             };
-            img.onerror = () => { 
-              clearTimeout(timeout); 
-              reject(new Error('Image failed to load')); 
+            img.onerror = () => {
+              clearTimeout(timeout);
+              reject(new Error('Image element failed to load'));
             };
-            
-            // Force reload if needed
-            if (img.complete && img.naturalWidth === 0) {
-              const src = img.src;
-              img.src = '';
-              img.src = src;
-            }
           });
         }
-        // Wait for rendering
+        
+        // Additional wait for rendering
         await new Promise(resolve => setTimeout(resolve, 500));
       } else {
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
 
       // Generate blob directly using html-to-image (supports oklch natively)
@@ -134,6 +164,14 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
         cacheBust: true,
         includeQueryParams: true,
       });
+      
+      // Restore original styles
+      cardElement.style.visibility = originalStyles.visibility;
+      cardElement.style.position = originalStyles.position;
+      cardElement.style.left = originalStyles.left;
+      cardElement.style.top = originalStyles.top;
+      cardElement.style.opacity = originalStyles.opacity;
+      cardElement.style.zIndex = originalStyles.zIndex;
 
       if (!blob) {
         setShareStatus('Could not create image. Try downloading PNG instead.');
@@ -167,41 +205,28 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
           }
         }
 
-        // Fallback: Try sharing as URL or download
+        // Fallback: Download the image (Instagram Stories requires manual upload)
         const dataUrl = URL.createObjectURL(blob);
-        if (navigator.share) {
-          const shareUrl = `${window.location.origin}/certificates?certId=${certificate.uniqueId}`;
-          try {
-            await navigator.share({
-              title: `${certificate.eventName} Certificate`,
-              text: `Check out my certificate! Download: ${shareUrl}`,
-              url: shareUrl,
-            });
-            setShareStatus('Link shared! Download the PNG to post to Stories.');
-          } catch (linkError: any) {
-            if (linkError.name !== 'AbortError') {
-              const link = document.createElement('a');
-              link.href = dataUrl;
-              link.download = `certificate-${certificate.eventName.replace(/\s+/g, '-')}.png`;
-              link.click();
-              setShareStatus('Image downloaded! Open it and share to Stories manually.');
-            }
-          }
-        } else {
-          const link = document.createElement('a');
-          link.href = dataUrl;
-          link.download = `certificate-${certificate.eventName.replace(/\s+/g, '-')}.png`;
-          link.click();
-          setShareStatus('Image downloaded! Open it and share to Stories manually.');
-        }
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = `certificate-${certificate.eventName.replace(/\s+/g, '-')}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        // Clean up the object URL after a delay
+        setTimeout(() => URL.revokeObjectURL(dataUrl), 1000);
+        setShareStatus('Image downloaded! Open Instagram Stories and upload this image.');
       } catch (error) {
         console.error('Error in share process:', error);
         const dataUrl = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = dataUrl;
         link.download = `certificate-${certificate.eventName.replace(/\s+/g, '-')}.png`;
+        document.body.appendChild(link);
         link.click();
-        setShareStatus('Downloaded! Open the image and share to Stories manually.');
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(dataUrl), 1000);
+        setShareStatus('Downloaded! Open Instagram Stories and upload this image.');
       }
       
       setSharing(false);
@@ -211,6 +236,18 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
       // Fallback: try using the regular certificate preview
       try {
         if (previewRef.current) {
+          // Preload the certificate image
+          const imgLoader = new Image();
+          imgLoader.crossOrigin = 'anonymous';
+          await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Image timeout')), 10000);
+            imgLoader.onload = () => { clearTimeout(timeout); resolve(null); };
+            imgLoader.onerror = () => { clearTimeout(timeout); reject(new Error('Image failed')); };
+            imgLoader.src = template.templateImageUrl;
+          });
+          
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
           const blob = await toBlob(previewRef.current, {
             quality: 0.85,
             pixelRatio: 2,
@@ -222,8 +259,11 @@ const PublicCertificateRenderer: React.FC<PublicCertificateRendererProps> = ({ c
             const link = document.createElement('a');
             link.href = dataUrl;
             link.download = `certificate-${certificate.eventName.replace(/\s+/g, '-')}.png`;
+            document.body.appendChild(link);
             link.click();
-            setShareStatus('Certificate downloaded! Share it manually.');
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(dataUrl), 1000);
+            setShareStatus('Certificate downloaded! Open Instagram Stories and upload it.');
             setSharing(false);
             return;
           }

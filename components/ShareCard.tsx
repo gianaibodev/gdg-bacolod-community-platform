@@ -83,14 +83,12 @@ const ShareCard: React.FC<ShareCardProps> = ({ certificate, template }) => {
             height: '100%',
             objectFit: 'cover',
             display: 'block',
+            opacity: '1',
+            visibility: 'visible',
           }}
           crossOrigin="anonymous"
           loading="eager"
           decoding="sync"
-          onLoad={(e) => {
-            // Ensure image is visible
-            (e.target as HTMLImageElement).style.opacity = '1';
-          }}
         />
         <div
           style={{

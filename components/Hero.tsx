@@ -28,7 +28,7 @@ const Hero: React.FC = () => {
   return (
     <section 
       ref={containerRef}
-      className="relative min-h-[60vh] md:min-h-[60vh] w-full flex items-center justify-center overflow-hidden bg-white dark:bg-[#121212] pt-16 md:pt-24 pb-6 md:pb-0 transition-colors duration-500"
+      className="relative min-h-[80vh] md:min-h-[85vh] w-full flex items-end md:items-center justify-center overflow-hidden bg-white dark:bg-[#121212] pt-16 md:pt-32 pb-12 md:pb-20 transition-colors duration-500"
       style={{ perspective: '1000px' }}
     >
       {/* --- TECHNICAL GRID BACKGROUND (UNCHANGED) --- */}
@@ -47,10 +47,10 @@ const Hero: React.FC = () => {
       </div>
 
       {/* --- CONTENT CORE --- */}
-      <div className={`relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+      <div className={`relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center transition-all duration-1000 pb-8 md:pb-16 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
         
         {/* HERO TYPOGRAPHY STACK */}
-        <div className="relative mb-3 mt-2 md:mb-6 md:mt-8">
+        <div className="relative mb-3 mt-2 md:mb-6 md:mt-0">
           {/* Floating 3D Shapes (Decorations) */}
           <div className="absolute -left-4 md:-left-12 top-0 animate-float-slow opacity-100 hidden lg:block">
             <div className="glass-pill p-4 rounded-full shadow-xl dark:bg-white/5 dark:border-white/10">
