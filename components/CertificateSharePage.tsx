@@ -229,16 +229,16 @@ const CertificateSharePage: React.FC = () => {
         </div>
       </header>
 
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-16 pb-12">
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-20 lg:pt-24 pb-12">
         {/* Confirmation Banner */}
-        <div className="mb-16 text-center relative">
-          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-google-blue via-google-red to-google-yellow mb-6 shadow-2xl shadow-google-blue/30 animate-pulse-glow">
+        <div className="mb-12 md:mb-16 text-center relative">
+          <div className="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-google-blue via-google-red to-google-yellow mb-4 md:mb-6 shadow-2xl shadow-google-blue/30 animate-pulse-glow">
             <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <p className="text-xs font-bold tracking-[0.4em] uppercase text-google-blue mb-4">Certificate Verified</p>
-          <h1 className="text-4xl md:text-6xl font-bold text-slate-900 dark:text-white mb-6 bg-clip-text">
+          <p className="text-xs font-bold tracking-[0.4em] uppercase text-google-blue mb-3 md:mb-4">Certificate Verified</p>
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-4 md:mb-6 bg-clip-text">
             Certificate Awarded
           </h1>
           <div className="max-w-3xl mx-auto bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-slate-200 dark:border-slate-700 shadow-xl">
@@ -308,14 +308,14 @@ const CertificateSharePage: React.FC = () => {
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Link
             to="/certificates"
-            className="group inline-flex items-center gap-2 px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full font-semibold hover:bg-slate-800 dark:hover:bg-slate-100 transition-all hover:scale-105 shadow-lg hover:shadow-xl"
+            className="group inline-flex items-center gap-2 px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full font-semibold hover:bg-slate-800 dark:hover:bg-slate-100 transition-all duration-150 hover:scale-105 shadow-lg hover:shadow-xl"
           >
             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
             Claim Another Certificate
           </Link>
           <Link
             to="/"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-google-blue to-google-red text-white rounded-full font-semibold hover:from-blue-600 hover:to-red-600 transition-all hover:scale-105 shadow-lg hover:shadow-xl"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-google-blue to-google-red text-white rounded-full font-semibold hover:from-blue-600 hover:to-red-600 transition-all duration-150 hover:scale-105 shadow-lg hover:shadow-xl"
           >
             Visit Homepage
           </Link>

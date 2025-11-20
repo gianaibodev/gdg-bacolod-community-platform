@@ -65,7 +65,7 @@ const Hero: React.FC = () => {
   return (
     <section 
       ref={containerRef}
-      className="relative min-h-[80vh] md:min-h-[85vh] w-full flex items-end md:items-center justify-center overflow-hidden bg-white dark:bg-[#121212] pt-16 md:pt-32 pb-12 md:pb-20 transition-colors duration-500"
+      className="relative min-h-[80vh] md:min-h-[90vh] w-full flex items-end md:items-center justify-center overflow-hidden bg-white dark:bg-[#121212] pt-16 md:pt-24 lg:pt-32 pb-12 md:pb-20 transition-colors duration-150"
       style={{ perspective: '1000px' }}
     >
       {/* --- TECHNICAL GRID BACKGROUND (UNCHANGED) --- */}
@@ -84,7 +84,7 @@ const Hero: React.FC = () => {
       </div>
 
       {/* --- CONTENT CORE --- */}
-      <div className={`relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center transition-all duration-1000 pb-8 md:pb-16 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+      <div className={`relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center transition-all duration-300 pb-8 md:pb-0 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
         
         {/* HERO TYPOGRAPHY STACK */}
         <div className="relative mb-3 mt-2 md:mb-6 md:mt-0">
@@ -115,7 +115,7 @@ const Hero: React.FC = () => {
             href="https://gdg.community.dev/gdg-bacolod/"
             target="_blank"
             rel="noreferrer"
-            className="group relative px-8 py-4 bg-google-blue text-white rounded-full font-medium text-lg overflow-hidden transition-all hover:scale-105 hover:shadow-xl shadow-lg shadow-blue-500/30 w-full sm:w-auto text-center"
+            className="group relative px-8 py-4 bg-google-blue text-white rounded-full font-medium text-lg overflow-hidden transition-all duration-150 hover:scale-105 hover:shadow-xl shadow-lg shadow-blue-500/30 w-full sm:w-auto text-center"
           >
             <span className="relative flex items-center justify-center gap-2">
               Join Chapter <ArrowRight size={20} />
@@ -124,7 +124,7 @@ const Hero: React.FC = () => {
 
           <Link
             to="/certificates"
-            className="px-8 py-4 bg-slate-900 text-white rounded-full font-medium text-lg hover:bg-slate-800 transition-all hover:shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto"
+            className="px-8 py-4 bg-slate-900 text-white rounded-full font-medium text-lg hover:bg-slate-800 transition-all duration-150 hover:shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             Claim Certificate
           </Link>
