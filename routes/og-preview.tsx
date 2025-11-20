@@ -1,97 +1,271 @@
 import React from 'react';
 
 // This route renders a preview of the website for social media
-// It can be accessed at /og-preview and used with screenshot services
+// It matches the homepage design and can be screenshot for OG images
 const OGPreview: React.FC = () => {
   return (
-    <div style={{
-      width: '1200px',
-      height: '630px',
-      background: 'white',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '60px',
-      fontFamily: "'Google Sans', system-ui, -apple-system, sans-serif",
-      position: 'relative',
-      overflow: 'hidden',
-      margin: '0 auto',
-    }}>
-      {/* Google Colors Bar */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '6px',
-        background: 'linear-gradient(90deg, #4285F4, #34A853, #FBBC05, #EA4335)',
-      }} />
-      
-      {/* Logo */}
-      <img
-        src="https://www.svgrepo.com/show/353810/google-developers.svg"
-        alt="Google Developers"
-        style={{
-          width: '120px',
-          height: '120px',
-          marginBottom: '30px',
-        }}
-      />
-      
-      {/* Title */}
-      <h1 style={{
-        fontSize: '64px',
-        fontWeight: 700,
-        color: '#1a73e8',
-        marginBottom: '16px',
-        textAlign: 'center',
-        margin: 0,
-      }}>
-        GDG Bacolod
-      </h1>
-      
-      {/* Subtitle */}
-      <p style={{
-        fontSize: '32px',
-        color: '#5f6368',
-        marginBottom: '50px',
-        textAlign: 'center',
-        fontWeight: 400,
-        margin: '0 0 50px 0',
-      }}>
-        Google Developer Group
-      </p>
-      
-      {/* Features */}
-      <div style={{
-        display: 'flex',
-        gap: '50px',
-        marginTop: '40px',
-      }}>
-        {[
-          { icon: '🎉', text: 'DevFest' },
-          { icon: '📚', text: 'Workshops' },
-          { icon: '🤝', text: 'Community' },
-          { icon: '🏆', text: 'Certificates' },
-        ].map((feature, i) => (
-          <div key={i} style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '40px', marginBottom: '12px' }}>{feature.icon}</div>
-            <div style={{ fontSize: '20px', color: '#5f6368', fontWeight: 500 }}>{feature.text}</div>
+    <html>
+      <head>
+        <meta charSet="UTF-8" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+        <style>{`
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          body {
+            font-family: 'Google Sans', system-ui, -apple-system, sans-serif;
+            width: 1200px;
+            height: 630px;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            position: relative;
+            overflow: hidden;
+          }
+          .header {
+            position: absolute;
+            top: 40px;
+            left: 60px;
+            right: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          }
+          .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: #f3f4f6;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 20px;
+            color: #1a73e8;
+          }
+          .logo-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #5f6368;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+          }
+          .nav {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+          }
+          .nav-link {
+            font-size: 14px;
+            color: #5f6368;
+            text-decoration: none;
+            font-weight: 500;
+          }
+          .main-content {
+            text-align: center;
+            z-index: 10;
+          }
+          .title-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 24px;
+          }
+          .title-icon {
+            width: 48px;
+            height: 48px;
+            background: #f3f4f6;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 24px;
+            color: #1a73e8;
+          }
+          .title {
+            font-size: 72px;
+            font-weight: 700;
+            line-height: 1.1;
+          }
+          .title-part1 {
+            color: #1f2937;
+          }
+          .title-part2 {
+            color: #ea4335;
+          }
+          .title-icon-right {
+            width: 48px;
+            height: 48px;
+            background: #ea4335;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .description {
+            font-size: 20px;
+            color: #5f6368;
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+          }
+          .cta-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 40px;
+          }
+          .btn {
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+          }
+          .btn-primary {
+            background: #1a73e8;
+            color: white;
+          }
+          .btn-secondary {
+            background: #1f2937;
+            color: white;
+          }
+          .features {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            margin-top: 40px;
+          }
+          .feature {
+            text-align: center;
+          }
+          .feature-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+          }
+          .feature-text {
+            font-size: 16px;
+            color: #5f6368;
+            font-weight: 500;
+          }
+          .bg-decoration {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            opacity: 0.1;
+            filter: blur(60px);
+          }
+          .bg-blue {
+            background: #4285F4;
+            top: -100px;
+            left: -100px;
+          }
+          .bg-red {
+            background: #EA4335;
+            bottom: -100px;
+            right: -100px;
+          }
+          .url {
+            margin-top: 40px;
+            font-size: 16px;
+            color: #9aa0a6;
+            font-family: monospace;
+          }
+        `}</style>
+      </head>
+      <body>
+        {/* Background Decorations */}
+        <div className="bg-decoration bg-blue"></div>
+        <div className="bg-decoration bg-red"></div>
+        
+        {/* Header */}
+        <div className="header">
+          <div className="logo">
+            <div className="logo-icon">&lt;/&gt;</div>
+            <div className="logo-text">GDG Bacolod</div>
           </div>
-        ))}
-      </div>
-      
-      {/* URL */}
-      <div style={{
-        marginTop: '50px',
-        fontSize: '18px',
-        color: '#9aa0a6',
-        fontFamily: 'monospace',
-      }}>
-        gdg-bacolod.vercel.app
-      </div>
-    </div>
+          <div className="nav">
+            <a href="#" className="nav-link">About</a>
+            <a href="#" className="nav-link">Moments</a>
+            <a href="#" className="nav-link">Team</a>
+            <a href="#" className="nav-link">Certificates</a>
+          </div>
+        </div>
+        
+        {/* Main Content */}
+        <div className="main-content">
+          <div className="title-wrapper">
+            <div className="title-icon">&lt;/&gt;</div>
+            <h1 className="title">
+              <span className="title-part1">Google Developer Group</span>
+              <br />
+              <span className="title-part2">Bacolod</span>
+            </h1>
+            <div className="title-icon-right">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                <rect x="4" y="4" width="4" height="4" rx="1"/>
+                <rect x="10" y="4" width="4" height="4" rx="1"/>
+                <rect x="16" y="4" width="4" height="4" rx="1"/>
+                <rect x="4" y="10" width="4" height="4" rx="1"/>
+                <rect x="10" y="10" width="4" height="4" rx="1"/>
+                <rect x="16" y="10" width="4" height="4" rx="1"/>
+                <rect x="4" y="16" width="4" height="4" rx="1"/>
+                <rect x="10" y="16" width="4" height="4" rx="1"/>
+                <rect x="16" y="16" width="4" height="4" rx="1"/>
+              </svg>
+            </div>
+          </div>
+          
+          <p className="description">
+            Google Developer Groups are community groups for college and university students interested in Google developer technologies.
+          </p>
+          
+          <div className="cta-buttons">
+            <a href="#" className="btn btn-primary">Join Chapter →</a>
+            <a href="#" className="btn btn-secondary">Claim Certificate</a>
+          </div>
+          
+          <div className="features">
+            <div className="feature">
+              <div className="feature-icon">🎉</div>
+              <div className="feature-text">DevFest</div>
+            </div>
+            <div className="feature">
+              <div className="feature-icon">📚</div>
+              <div className="feature-text">Workshops</div>
+            </div>
+            <div className="feature">
+              <div className="feature-icon">🤝</div>
+              <div className="feature-text">Community</div>
+            </div>
+            <div className="feature">
+              <div className="feature-icon">🏆</div>
+              <div className="feature-text">Certificates</div>
+            </div>
+          </div>
+          
+          <div className="url">gdg-bacolod.vercel.app</div>
+        </div>
+      </body>
+    </html>
   );
 };
 
