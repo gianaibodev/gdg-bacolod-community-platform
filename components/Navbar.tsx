@@ -70,7 +70,7 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleTheme }) => {
                 key={link.name}
                 smooth
                 to={`/${link.href}`}
-                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors relative group/link"
+                className="text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition-colors relative group/link"
               >
                 {link.name}
               </HashLink>
@@ -78,7 +78,7 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleTheme }) => {
               <Link
                 key={link.name}
                 to={link.href}
-                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors relative group/link"
+                className="text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition-colors relative group/link"
               >
                 {link.name}
               </Link>
@@ -90,7 +90,8 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleTheme }) => {
           {/* Theme Toggle */}
           <button 
             onClick={toggleTheme}
-            className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            className="p-2 rounded-full text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             {darkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
@@ -114,13 +115,16 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleTheme }) => {
         <div className="md:hidden flex items-center gap-4">
           <button 
               onClick={toggleTheme}
-              className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors bg-white/50 dark:bg-black/50 backdrop-blur-md"
+              aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+              className="p-2 rounded-full text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors bg-white/50 dark:bg-black/50 backdrop-blur-md"
             >
               {darkMode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
             
           <button
             onClick={() => setIsOpen(!isOpen)}
+            aria-label={isOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isOpen}
             className="p-2 text-slate-800 dark:text-white bg-white/50 dark:bg-black/50 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors backdrop-blur-md"
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
@@ -161,7 +165,11 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleTheme }) => {
             Join Chapter
           </a>
           
-          <button onClick={() => setIsOpen(false)} className="absolute top-8 right-8 p-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-full">
+          <button 
+            onClick={() => setIsOpen(false)} 
+            aria-label="Close menu"
+            className="absolute top-8 right-8 p-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-full"
+          >
             <X size={24} />
           </button>
       </div>

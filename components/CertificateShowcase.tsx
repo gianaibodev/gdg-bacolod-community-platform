@@ -31,7 +31,8 @@ const CertificateShowcase: React.FC = () => {
                 </Link>
                 <button
                   onClick={() => setShowInstructions(true)}
-                  className="inline-flex items-center justify-center rounded-full border border-slate-300 dark:border-white/20 px-6 py-3 text-sm font-semibold text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition duration-150"
+                  aria-label="View certificate claim instructions"
+                  className="inline-flex items-center justify-center rounded-full border border-slate-300 dark:border-white/20 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 transition duration-150"
                 >
                   View instructions
                 </button>
@@ -78,6 +79,7 @@ const CertificateShowcase: React.FC = () => {
             </div>
             <button
               onClick={() => setShowInstructions(false)}
+              aria-label="Close instructions modal"
               className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-400 transition-colors duration-150"
             >
               <X size={20} />
@@ -126,7 +128,8 @@ const CertificateShowcase: React.FC = () => {
               </Link>
               <button
                 onClick={() => setShowInstructions(false)}
-                className="px-6 py-3 rounded-full border border-slate-300 dark:border-white/20 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-150 font-semibold"
+                aria-label="Close instructions"
+                className="px-6 py-3 rounded-full border border-slate-300 dark:border-white/20 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-150 font-semibold"
               >
                 Close
               </button>

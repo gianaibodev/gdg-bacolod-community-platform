@@ -14,6 +14,7 @@ import AiAssistant from './components/AiAssistant';
 import AdminDashboard from './components/AdminDashboard';
 import CertificateLookup from './components/CertificateLookup';
 import CertificateSharePage from './components/CertificateSharePage';
+import OGPreview from './routes/og-preview';
 
 // Google Style Loading Screen (4 Dots)
 const LoadingScreen: React.FC = () => {
@@ -159,6 +160,7 @@ const App: React.FC = () => {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/certificates" element={<CertificateLookup />} />
           <Route path="/certificates/share/:certId" element={<CertificateSharePage />} />
+          <Route path="/og-preview" element={<OGPreview />} />
         </Routes>
       </div>
     </Router>
