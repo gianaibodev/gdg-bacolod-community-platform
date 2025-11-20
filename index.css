@@ -123,8 +123,9 @@ body {
   width: 40px;
   height: 40px;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  transition: width 0.2s, height 0.2s, background-color 0.2s, border-color 0.2s;
+  transition: width 0.1s, height 0.1s, background-color 0.1s, border-color 0.1s, transform 0.1s;
   backdrop-filter: blur(2px);
+  will-change: transform;
 }
 .dark .cursor-outline {
   border: 1px solid rgba(255, 255, 255, 0.2);

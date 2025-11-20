@@ -197,16 +197,17 @@ const CertificateSharePage: React.FC = () => {
           <div className="flex items-center justify-between">
             <Link
               to="/"
-              className="flex items-center gap-2 text-slate-900 dark:text-white hover:text-google-blue transition-colors group"
+              className="flex items-center gap-2 text-slate-900 dark:text-white hover:text-google-blue transition-colors duration-150 group"
             >
-              <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+              <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform duration-150" />
               <span className="font-semibold">Back to Home</span>
             </Link>
             <div className="flex items-center gap-4">
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-150 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 aria-label="Toggle dark mode"
+                style={{ willChange: 'background-color' }}
               >
                 {darkMode ? <Sun size={20} /> : <Moon size={20} />}
               </button>
@@ -228,9 +229,9 @@ const CertificateSharePage: React.FC = () => {
         </div>
       </header>
 
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-16 pb-12">
         {/* Confirmation Banner */}
-        <div className="mb-12 text-center relative">
+        <div className="mb-16 text-center relative">
           <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-google-blue via-google-red to-google-yellow mb-6 shadow-2xl shadow-google-blue/30 animate-pulse-glow">
             <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />

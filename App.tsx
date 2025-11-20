@@ -46,7 +46,7 @@ const CustomCursor: React.FC = () => {
         outlineRef.current.animate({
           left: `${clientX}px`,
           top: `${clientY}px`
-        }, { duration: 500, fill: "forwards" });
+        }, { duration: 150, fill: "forwards" });
       }
     };
 

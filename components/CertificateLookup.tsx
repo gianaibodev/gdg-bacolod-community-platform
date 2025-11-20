@@ -151,16 +151,17 @@ const CertificateLookup: React.FC = () => {
           <div className="flex items-center justify-between">
             <Link
               to="/"
-              className="flex items-center gap-2 text-slate-900 dark:text-white hover:text-google-blue transition-colors group"
+              className="flex items-center gap-2 text-slate-900 dark:text-white hover:text-google-blue transition-colors duration-150 group"
             >
-              <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+              <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform duration-150" />
               <span className="font-semibold">Back to Home</span>
             </Link>
             <div className="flex items-center gap-4">
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-150 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 aria-label="Toggle dark mode"
+                style={{ willChange: 'background-color' }}
               >
                 {darkMode ? <Sun size={20} /> : <Moon size={20} />}
               </button>
@@ -182,7 +183,7 @@ const CertificateLookup: React.FC = () => {
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-16 pb-16">
         <div className="text-center mb-12">
           <p className="text-xs font-bold tracking-[0.4em] uppercase text-google-blue mb-4">Certificates</p>
           <h1 className="text-3xl md:text-5xl font-bold text-slate-900 dark:text-white mb-4">
