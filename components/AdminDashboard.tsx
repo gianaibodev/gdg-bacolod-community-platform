@@ -91,17 +91,59 @@ const AdminDashboard: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
-  // Handle Dark Mode
+  // Handle Dark Mode - Auto-detect system preference, default to light mode
   useEffect(() => {
     const saved = localStorage.getItem('adminDarkMode');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const isDark = saved ? saved === 'true' : prefersDark;
+    let isDark = false;
+    
+    if (saved !== null) {
+      // User has explicitly set a preference
+      isDark = saved === 'true';
+    } else {
+      // No saved preference - check system preference, but default to light mode if unavailable
+      try {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        isDark = mediaQuery.matches;
+      } catch (e) {
+        // If matchMedia is not available, default to light mode
+        isDark = false;
+      }
+    }
+    
     setDarkMode(isDark);
     
     if (isDark) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
+    }
+
+    // Listen for system preference changes (only if user hasn't set a preference)
+    if (saved === null) {
+      try {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleChange = (e: MediaQueryListEvent) => {
+          setDarkMode(e.matches);
+          if (e.matches) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        };
+        
+        // Modern browsers
+        if (mediaQuery.addEventListener) {
+          mediaQuery.addEventListener('change', handleChange);
+          return () => mediaQuery.removeEventListener('change', handleChange);
+        }
+        // Fallback for older browsers
+        else if (mediaQuery.addListener) {
+          mediaQuery.addListener(handleChange);
+          return () => mediaQuery.removeListener(handleChange);
+        }
+      } catch (e) {
+        // Ignore errors
+      }
     }
   }, []);
 
@@ -526,30 +568,30 @@ const TeamManager: React.FC = () => {
     <div className="p-4 md:p-6">
       {editingId ? (
         <div className="max-w-2xl mx-auto">
-           <div className="flex items-center justify-between mb-6 md:mb-8 border-b border-slate-100 pb-4 md:pb-6">
-              <h3 className="text-xl md:text-2xl font-bold text-slate-900">{editingId === 'new' ? 'Add Team Member' : 'Edit Member'}</h3>
-              <button onClick={() => setEditingId(null)} className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors">
+           <div className="flex items-center justify-between mb-6 md:mb-8 border-b border-slate-100 dark:border-white/10 pb-4 md:pb-6">
+              <h3 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">{editingId === 'new' ? 'Add Team Member' : 'Edit Member'}</h3>
+              <button onClick={() => setEditingId(null)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full text-slate-600 dark:text-slate-300 transition-colors duration-150">
                   <X size={20} />
               </button>
            </div>
            
            <div className="space-y-4 md:space-y-6">
              <div>
-               <label className="block text-sm font-bold text-slate-700 mb-2">Full Name</label>
-               <input className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. John Doe" />
+               <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Full Name</label>
+               <input className="w-full p-3 border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all duration-150" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. John Doe" />
              </div>
              
              <div>
-               <label className="block text-sm font-bold text-slate-700 mb-2">Role / Position</label>
-               <input className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all" value={formData.role || ''} onChange={e => setFormData({...formData, role: e.target.value})} placeholder="e.g. Lead Organizer" />
+               <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Role / Position</label>
+               <input className="w-full p-3 border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all duration-150" value={formData.role || ''} onChange={e => setFormData({...formData, role: e.target.value})} placeholder="e.g. Lead Organizer" />
              </div>
              
              <div>
-               <label className="block text-sm font-bold text-slate-700 mb-2">Photo URL</label>
+               <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Photo URL</label>
                <div className="flex flex-col sm:flex-row gap-4">
-                   <input className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all" value={formData.photoUrl || ''} onChange={e => setFormData({...formData, photoUrl: e.target.value})} placeholder="https://..." />
+                   <input className="w-full p-3 border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all duration-150" value={formData.photoUrl || ''} onChange={e => setFormData({...formData, photoUrl: e.target.value})} placeholder="https://..." />
                    {formData.photoUrl && (
-                      <div className="w-16 h-16 sm:w-12 sm:h-12 rounded-full overflow-hidden border border-slate-200 flex-shrink-0">
+                      <div className="w-16 h-16 sm:w-12 sm:h-12 rounded-full overflow-hidden border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-slate-800 flex-shrink-0">
                           <img src={formData.photoUrl} alt="Preview" className="w-full h-full object-cover" />
                       </div>
                    )}
@@ -557,9 +599,9 @@ const TeamManager: React.FC = () => {
              </div>
            </div>
            
-           <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6 md:mt-8 pt-6 border-t border-slate-100">
-              <button onClick={() => setEditingId(null)} className="px-6 py-3 text-slate-600 hover:bg-slate-100 rounded-xl font-bold transition-colors order-2 sm:order-1">Cancel</button>
-              <button onClick={handleSave} className="px-6 py-3 bg-google-blue text-white rounded-xl hover:bg-blue-600 flex items-center justify-center gap-2 font-bold shadow-lg shadow-blue-500/20 transition-all hover:scale-105 order-1 sm:order-2"><Save size={18} /> Save Member</button>
+           <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6 md:mt-8 pt-6 border-t border-slate-100 dark:border-white/10">
+              <button onClick={() => setEditingId(null)} className="px-6 py-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl font-bold transition-colors duration-150 order-2 sm:order-1">Cancel</button>
+              <button onClick={handleSave} className="px-6 py-3 bg-google-blue text-white rounded-xl hover:bg-blue-600 flex items-center justify-center gap-2 font-bold shadow-lg shadow-blue-500/20 transition-all duration-150 hover:scale-105 order-1 sm:order-2"><Save size={18} /> Save Member</button>
            </div>
         </div>
       ) : (
@@ -572,17 +614,17 @@ const TeamManager: React.FC = () => {
           
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {team.map(member => (
-              <div key={member.id} className="bg-white p-4 md:p-5 rounded-xl md:rounded-2xl shadow-sm hover:shadow-md transition-all border border-slate-100 group">
+              <div key={member.id} className="bg-white dark:bg-slate-900/70 p-4 md:p-5 rounded-xl md:rounded-2xl shadow-sm hover:shadow-md transition-all border border-slate-100 dark:border-white/10 group">
                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 md:gap-4 mb-3 md:mb-4">
-                     <img src={member.photoUrl} alt={member.name} className="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover bg-slate-100 border-2 border-white shadow-sm flex-shrink-0" />
+                     <img src={member.photoUrl} alt={member.name} className="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover bg-slate-100 dark:bg-slate-800 border-2 border-white dark:border-slate-800 shadow-sm flex-shrink-0" />
                      <div className="text-center sm:text-left flex-1 min-w-0">
-                        <h4 className="font-bold text-slate-900 text-sm md:text-lg leading-tight truncate">{member.name}</h4>
-                        <p className="text-xs md:text-sm text-slate-500 font-medium mt-0.5 line-clamp-2">{member.role}</p>
+                        <h4 className="font-bold text-slate-900 dark:text-white text-sm md:text-lg leading-tight truncate">{member.name}</h4>
+                        <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 font-medium mt-0.5 line-clamp-2">{member.role}</p>
                      </div>
                  </div>
-                 <div className="flex gap-2 pt-3 md:pt-4 border-t border-slate-50">
-                    <button onClick={() => handleEdit(member)} className="flex-1 py-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg text-xs md:text-sm font-bold transition-colors">Edit</button>
-                    <button onClick={() => handleDelete(member.id)} className="flex-1 py-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg text-xs md:text-sm font-bold transition-colors">Remove</button>
+                 <div className="flex gap-2 pt-3 md:pt-4 border-t border-slate-100 dark:border-white/10">
+                    <button onClick={() => handleEdit(member)} className="flex-1 py-2 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg text-xs md:text-sm font-bold transition-colors duration-150">Edit</button>
+                    <button onClick={() => handleDelete(member.id)} className="flex-1 py-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-xs md:text-sm font-bold transition-colors duration-150">Remove</button>
                  </div>
               </div>
             ))}
@@ -641,22 +683,22 @@ const PartnersManager: React.FC = () => {
     <div className="p-4 md:p-6">
       {editingId ? (
         <div className="max-w-2xl mx-auto">
-           <div className="flex items-center justify-between mb-6 md:mb-8 border-b border-slate-100 pb-4 md:pb-6">
-              <h3 className="text-xl md:text-2xl font-bold text-slate-900">{editingId === 'new' ? 'Add Partner' : 'Edit Partner'}</h3>
-              <button onClick={() => setEditingId(null)} className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors">
+           <div className="flex items-center justify-between mb-6 md:mb-8 border-b border-slate-100 dark:border-white/10 pb-4 md:pb-6">
+              <h3 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">{editingId === 'new' ? 'Add Partner' : 'Edit Partner'}</h3>
+              <button onClick={() => setEditingId(null)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full text-slate-600 dark:text-slate-300 transition-colors duration-150">
                   <X size={20} />
               </button>
            </div>
            
            <div className="space-y-4 md:space-y-6">
              <div>
-               <label className="block text-sm font-bold text-slate-700 mb-2">Partner Name</label>
-               <input className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. Google" />
+               <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Partner Name</label>
+               <input className="w-full p-3 border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all duration-150" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. Google" />
              </div>
              
              <div>
-               <label className="block text-sm font-bold text-slate-700 mb-2">Tier</label>
-               <select className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all bg-white" value={formData.tier} onChange={e => setFormData({...formData, tier: e.target.value as any})}>
+               <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Tier</label>
+               <select className="w-full p-3 border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all duration-150" value={formData.tier} onChange={e => setFormData({...formData, tier: e.target.value as any})}>
                   <option value="Platinum">Platinum</option>
                   <option value="Gold">Gold</option>
                   <option value="Silver">Silver</option>
@@ -665,14 +707,14 @@ const PartnersManager: React.FC = () => {
              </div>
              
              <div>
-               <label className="block text-sm font-bold text-slate-700 mb-2">Logo URL</label>
+               <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Logo URL</label>
                <div className="flex flex-col sm:flex-row gap-4 items-start">
                    <div className="flex-grow w-full">
-                       <input className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all" value={formData.logoUrl || ''} onChange={e => setFormData({...formData, logoUrl: e.target.value})} placeholder="https://..." />
-                       <p className="text-xs text-slate-400 mt-2">Direct link to logo image</p>
+                       <input className="w-full p-3 border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all duration-150" value={formData.logoUrl || ''} onChange={e => setFormData({...formData, logoUrl: e.target.value})} placeholder="https://..." />
+                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Direct link to logo image</p>
                    </div>
                    {formData.logoUrl && (
-                      <div className="w-24 h-24 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 flex-shrink-0 relative group flex items-center justify-center">
+                      <div className="w-24 h-24 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex-shrink-0 relative group flex items-center justify-center">
                           <img src={formData.logoUrl} alt="Preview" className="max-w-full max-h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                           <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">Preview</div>
                       </div>
@@ -681,14 +723,14 @@ const PartnersManager: React.FC = () => {
              </div>
 
              <div>
-               <label className="block text-sm font-bold text-slate-700 mb-2">Website URL</label>
-               <input className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all" value={formData.websiteUrl || ''} onChange={e => setFormData({...formData, websiteUrl: e.target.value})} placeholder="https://..." />
+               <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Website URL</label>
+               <input className="w-full p-3 border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all duration-150" value={formData.websiteUrl || ''} onChange={e => setFormData({...formData, websiteUrl: e.target.value})} placeholder="https://..." />
              </div>
            </div>
            
-           <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6 md:mt-8 pt-6 border-t border-slate-100">
-              <button onClick={() => setEditingId(null)} className="px-6 py-3 text-slate-600 hover:bg-slate-100 rounded-xl font-bold transition-colors order-2 sm:order-1">Cancel</button>
-              <button onClick={handleSave} className="px-6 py-3 bg-google-blue text-white rounded-xl hover:bg-blue-600 flex items-center justify-center gap-2 font-bold shadow-lg shadow-blue-500/20 transition-all hover:scale-105 order-1 sm:order-2"><Save size={18} /> Save Partner</button>
+           <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6 md:mt-8 pt-6 border-t border-slate-100 dark:border-white/10">
+              <button onClick={() => setEditingId(null)} className="px-6 py-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl font-bold transition-colors duration-150 order-2 sm:order-1">Cancel</button>
+              <button onClick={handleSave} className="px-6 py-3 bg-google-blue text-white rounded-xl hover:bg-blue-600 flex items-center justify-center gap-2 font-bold shadow-lg shadow-blue-500/20 transition-all duration-150 hover:scale-105 order-1 sm:order-2"><Save size={18} /> Save Partner</button>
            </div>
         </div>
       ) : (
@@ -701,26 +743,26 @@ const PartnersManager: React.FC = () => {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {partners.map(partner => (
-              <div key={partner.id} className="bg-white p-5 rounded-xl md:rounded-2xl shadow-sm hover:shadow-md transition-all border border-slate-100 group">
+              <div key={partner.id} className="bg-white dark:bg-slate-900/70 p-5 rounded-xl md:rounded-2xl shadow-sm hover:shadow-md transition-all border border-slate-100 dark:border-white/10 group">
                  <div className="flex flex-col items-center text-center mb-4">
                      {partner.logoUrl && (
-                       <div className="w-24 h-24 mb-4 flex items-center justify-center bg-slate-50 rounded-xl p-4">
+                       <div className="w-24 h-24 mb-4 flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded-xl p-4">
                          <img src={partner.logoUrl} alt={partner.name} className="max-w-full max-h-full object-contain" />
                        </div>
                      )}
-                     <h4 className="font-bold text-slate-900 text-lg mb-1">{partner.name}</h4>
+                     <h4 className="font-bold text-slate-900 dark:text-white text-lg mb-1">{partner.name}</h4>
                      <span className={`text-xs font-bold px-3 py-1 rounded-full ${
-                       partner.tier === 'Platinum' ? 'bg-purple-100 text-purple-700' :
-                       partner.tier === 'Gold' ? 'bg-yellow-100 text-yellow-700' :
-                       partner.tier === 'Silver' ? 'bg-slate-100 text-slate-700' :
-                       'bg-blue-100 text-blue-700'
+                       partner.tier === 'Platinum' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' :
+                       partner.tier === 'Gold' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
+                       partner.tier === 'Silver' ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300' :
+                       'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
                      }`}>
                        {partner.tier}
                      </span>
                  </div>
-                 <div className="flex gap-2 pt-4 border-t border-slate-50">
-                    <button onClick={() => handleEdit(partner)} className="flex-1 py-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg text-sm font-bold transition-colors">Edit</button>
-                    <button onClick={() => handleDelete(partner.id)} className="flex-1 py-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg text-sm font-bold transition-colors">Remove</button>
+                 <div className="flex gap-2 pt-4 border-t border-slate-100 dark:border-white/10">
+                    <button onClick={() => handleEdit(partner)} className="flex-1 py-2 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg text-sm font-bold transition-colors duration-150">Edit</button>
+                    <button onClick={() => handleDelete(partner.id)} className="flex-1 py-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-sm font-bold transition-colors duration-150">Remove</button>
                  </div>
               </div>
             ))}
