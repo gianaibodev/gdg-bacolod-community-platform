@@ -75,54 +75,54 @@ const CertificateGenerator: React.FC = () => {
     <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 p-4 md:p-6">
       {/* Configuration Form */}
       <div className="w-full lg:w-1/3 space-y-6">
-        <h2 className="text-xl md:text-2xl font-bold text-slate-900">Certificate Generator</h2>
-        <p className="text-sm text-slate-500">
+        <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">Certificate Generator</h2>
+        <p className="text-sm text-slate-600 dark:text-slate-400">
           Configure the certificate details and download a high quality PDF for attendees.
         </p>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Event Name</label>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Event Name</label>
             <input
               type="text"
               value={certificate.eventName}
               onChange={e => handleChange('eventName', e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue text-sm"
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue text-sm transition-all duration-150"
               placeholder="DevFest Bacolod 2025"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Recipient Name</label>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Recipient Name</label>
             <input
               type="text"
               value={certificate.recipientName}
               onChange={e => handleChange('recipientName', e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue text-sm"
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue text-sm transition-all duration-150"
               placeholder="Full name of attendee"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Date</label>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Date</label>
             <input
               type="date"
               value={certificate.date.substring(0, 10)}
               onChange={e => handleChange('date', e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue text-sm"
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue text-sm transition-all duration-150"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Theme</label>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Theme</label>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => handleChange('theme', 'devfest')}
-                className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
+                className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-semibold border transition-all duration-150 ${
                   isDevFest
-                    ? 'bg-slate-900 text-white border-slate-900'
-                    : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'
+                    ? 'bg-slate-900 dark:bg-slate-800 text-white border-slate-900 dark:border-slate-700'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/20 hover:border-slate-400 dark:hover:border-white/40'
                 }`}
               >
                 DevFest (Dark)
@@ -130,10 +130,10 @@ const CertificateGenerator: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleChange('theme', 'io')}
-                className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
+                className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-semibold border transition-all duration-150 ${
                   !isDevFest
                     ? 'bg-google-blue text-white border-google-blue'
-                    : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/20 hover:border-slate-400 dark:hover:border-white/40'
                 }`}
               >
                 I/O Extended
@@ -181,17 +181,23 @@ const CertificateGenerator: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-white/90 flex items-center justify-center shadow-md">
-                  <span className="text-google-blue font-black text-xl">&lt;/&gt;</span>
+                <div className="h-10 w-10 rounded-xl bg-white/90 dark:bg-white/90 flex items-center justify-center shadow-md p-1.5">
+                  <img 
+                    src="https://www.svgrepo.com/show/353810/google-developers.svg" 
+                    alt="Google Developers" 
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <div>
-                  <p className={`text-xs font-semibold tracking-[0.2em] uppercase ${
-                    isDevFest ? 'text-slate-300' : 'text-slate-500'
+                  <p className={`text-xs font-semibold ${
+                    isDevFest ? 'text-slate-300' : 'text-slate-600'
                   }`}>
-                    GDG BACOLOD
-                  </p>
-                  <p className={isDevFest ? 'text-xs text-slate-400' : 'text-xs text-slate-500'}>
                     Google Developer Group
+                  </p>
+                  <p className={`text-xs font-semibold ${
+                    isDevFest ? 'text-slate-200' : 'text-slate-700'
+                  }`}>
+                    Bacolod
                   </p>
                 </div>
               </div>

@@ -980,7 +980,7 @@ const CertificatesManager: React.FC = () => {
             <button
               type="button"
               onClick={handleCreateTemplate}
-              className="inline-flex items-center gap-1.5 rounded-full bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold border border-slate-200 dark:border-white/10 shadow-sm hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold border border-slate-200 dark:border-white/10 shadow-sm hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 transition-colors duration-150"
             >
               <Plus size={14} />
               New
@@ -988,11 +988,11 @@ const CertificatesManager: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="py-10 text-center text-slate-500 text-sm">Loading templates…</div>
+            <div className="py-10 text-center text-slate-600 dark:text-slate-400 text-sm">Loading templates…</div>
           ) : (
             <div className="space-y-2 max-h-[360px] overflow-auto pr-1">
               {templates.length === 0 && (
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-600 dark:text-slate-400">
                   No templates yet. Create one to get started.
                 </p>
               )}
@@ -1001,14 +1001,14 @@ const CertificatesManager: React.FC = () => {
                   key={template.id}
                   type="button"
                   onClick={() => handleSelectTemplate(template)}
-                  className={`w-full text-left px-3 py-2 rounded-xl border text-sm transition ${
+                  className={`w-full text-left px-3 py-2 rounded-xl border text-sm transition duration-150 ${
                     selectedId === template.id
-                      ? 'border-google-blue bg-google-blue/5 text-google-blue font-semibold'
-                      : 'border-slate-200 hover:border-google-blue/40'
+                      ? 'border-google-blue bg-google-blue/5 dark:bg-google-blue/20 text-google-blue font-semibold'
+                      : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white hover:border-google-blue/40 dark:hover:border-google-blue/60'
                   }`}
                 >
                   <p className="font-semibold">{template.eventName}</p>
-                  <p className="text-[0.7rem] uppercase tracking-wide text-slate-500">{template.eventId}</p>
+                  <p className="text-[0.7rem] uppercase tracking-wide text-slate-600 dark:text-slate-400">{template.eventId}</p>
                 </button>
               ))}
             </div>
@@ -1019,14 +1019,14 @@ const CertificatesManager: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Template details</h3>
-              <p className="text-sm text-slate-500">Manage the certificate design per event.</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Manage the certificate design per event.</p>
             </div>
             {selectedId && templates.some(t => t.id === selectedId) && (
               <button
                 type="button"
                 onClick={handleDeleteTemplate}
                 disabled={deletingTemplate}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 hover:text-red-500 disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300 disabled:opacity-50 transition-colors duration-150"
               >
                 <Trash2 size={16} />
                 Delete
@@ -1038,8 +1038,8 @@ const CertificatesManager: React.FC = () => {
             <div
               className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm ${
                 message.type === 'success'
-                  ? 'bg-green-50 text-green-700 border border-green-100'
-                  : 'bg-red-50 text-red-700 border border-red-100'
+                  ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-100 dark:border-green-800'
+                  : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-800'
               }`}
             >
               {message.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
@@ -1049,19 +1049,19 @@ const CertificatesManager: React.FC = () => {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Event ID (slug)</label>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Event ID (slug)</label>
               <input
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-google-blue focus:ring-2 focus:ring-google-blue/20 outline-none"
+                className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2.5 text-sm focus:border-google-blue focus:ring-2 focus:ring-google-blue/20 outline-none transition-all duration-150"
                 placeholder="devfest-2024"
                 value={formState.eventId}
                 onChange={e => handleTemplateChange('eventId', e.target.value)}
               />
-              <p className="text-xs text-slate-500 mt-1">Used for matching attendee CSV uploads.</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Used for matching attendee CSV uploads.</p>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Event Name</label>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Event Name</label>
               <input
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-google-blue focus:ring-2 focus:ring-google-blue/20 outline-none"
+                className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2.5 text-sm focus:border-google-blue focus:ring-2 focus:ring-google-blue/20 outline-none transition-all duration-150"
                 placeholder="DevFest Bacolod 2024"
                 value={formState.eventName}
                 onChange={e => handleTemplateChange('eventName', e.target.value)}
@@ -1071,60 +1071,60 @@ const CertificatesManager: React.FC = () => {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Template PNG URL</label>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Template PNG URL</label>
               <div className="flex gap-2">
                 <input
-                  className="flex-1 rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-google-blue focus:ring-2 focus:ring-google-blue/20 outline-none"
+                  className="flex-1 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2.5 text-sm focus:border-google-blue focus:ring-2 focus:ring-google-blue/20 outline-none transition-all duration-150"
                   placeholder="https://…/certificate.png"
                   value={formState.templateImageUrl}
                   onChange={e => handleTemplateChange('templateImageUrl', e.target.value)}
                 />
               </div>
-              <p className="text-xs text-slate-500 mt-1">We will overlay participant names on this image.</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">We will overlay participant names on this image.</p>
             </div>
           </div>
 
           <div className="col-span-2">
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Text Color & Position</label>
-              <div className="flex flex-wrap gap-4 items-center p-4 bg-slate-50 rounded-xl border border-slate-200">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Text Color & Position</label>
+              <div className="flex flex-wrap gap-4 items-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-white/10">
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => handleTemplateChange('textColor', 'black' as any)}
-                    className={`w-8 h-8 rounded-full border-2 ${formState.textColor === 'black' ? 'border-google-blue ring-2 ring-google-blue/20' : 'border-slate-300'}`}
+                    className={`w-8 h-8 rounded-full border-2 transition-all duration-150 ${formState.textColor === 'black' ? 'border-google-blue ring-2 ring-google-blue/20' : 'border-slate-300 dark:border-slate-600'}`}
                     style={{ backgroundColor: 'black' }}
                     title="Black Text"
                   />
                   <button
                     type="button"
                     onClick={() => handleTemplateChange('textColor', 'white' as any)}
-                    className={`w-8 h-8 rounded-full border-2 ${formState.textColor === 'white' ? 'border-google-blue ring-2 ring-google-blue/20' : 'border-slate-300'}`}
+                    className={`w-8 h-8 rounded-full border-2 transition-all duration-150 ${formState.textColor === 'white' ? 'border-google-blue ring-2 ring-google-blue/20' : 'border-slate-300 dark:border-slate-600'}`}
                     style={{ backgroundColor: 'white' }}
                     title="White Text"
                   />
                 </div>
-                <div className="h-8 w-px bg-slate-200" />
+                <div className="h-8 w-px bg-slate-200 dark:bg-white/20" />
                 <div className="flex gap-4">
                    <div>
-                     <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1 block">X Pos (%)</label>
+                     <label className="text-xs text-slate-600 dark:text-slate-400 font-semibold uppercase tracking-wider mb-1 block">X Pos (%)</label>
                      <input
                        type="number"
                        min="0"
                        max="100"
                        value={formState.namePosition?.x ?? 50}
                        onChange={e => setFormState(prev => ({ ...prev, namePosition: { ...prev.namePosition, x: Number(e.target.value), y: prev.namePosition?.y ?? 50 } }))}
-                       className="w-20 px-2 py-1 rounded border border-slate-200 text-sm"
+                       className="w-20 px-2 py-1 rounded border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm transition-all duration-150"
                      />
                    </div>
                    <div>
-                     <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1 block">Y Pos (%)</label>
+                     <label className="text-xs text-slate-600 dark:text-slate-400 font-semibold uppercase tracking-wider mb-1 block">Y Pos (%)</label>
                      <input
                        type="number"
                        min="0"
                        max="100"
                        value={formState.namePosition?.y ?? 50}
                        onChange={e => setFormState(prev => ({ ...prev, namePosition: { ...prev.namePosition, y: Number(e.target.value), x: prev.namePosition?.x ?? 50 } }))}
-                       className="w-20 px-2 py-1 rounded border border-slate-200 text-sm"
+                       className="w-20 px-2 py-1 rounded border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm transition-all duration-150"
                      />
                    </div>
                 </div>
@@ -1147,21 +1147,21 @@ const CertificatesManager: React.FC = () => {
                 setFormState(prev => ({ ...prev, templateImageUrl: '', eventName: '', eventId: '' }));
                 setMessage(null);
               }}
-              className="text-sm font-semibold text-slate-500 hover:text-slate-700"
+              className="text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors duration-150"
             >
               Clear
             </button>
           </div>
 
           {formState.templateImageUrl && (
-            <div className="mt-4 rounded-2xl border border-slate-200 overflow-hidden bg-white">
-              <div className="bg-slate-50 text-slate-600 text-xs font-semibold tracking-[0.2em] uppercase px-4 py-2 flex items-center gap-2 border-b border-slate-200">
+            <div className="mt-4 rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden bg-white dark:bg-slate-900/70">
+              <div className="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 text-xs font-semibold tracking-[0.2em] uppercase px-4 py-2 flex items-center gap-2 border-b border-slate-200 dark:border-white/10">
                 <ImageIcon size={14} />
                 Live preview with sample name
               </div>
               <div className="p-4">
                 <div 
-                  className="relative w-full max-w-2xl mx-auto rounded-lg overflow-hidden border border-slate-200 shadow-lg"
+                  className="relative w-full max-w-2xl mx-auto rounded-lg overflow-hidden border border-slate-200 dark:border-white/20 shadow-lg"
                   style={{
                     // A4 Landscape: 297mm x 210mm
                     aspectRatio: '297 / 210',
@@ -1187,7 +1187,7 @@ const CertificatesManager: React.FC = () => {
                     Sample Name
                   </div>
                 </div>
-                <p className="text-xs text-slate-500 mt-3 text-center">
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-3 text-center">
                   This is how names will appear on certificates. Adjust position and color above.
                 </p>
               </div>
@@ -1203,8 +1203,8 @@ const CertificatesManager: React.FC = () => {
           </div>
           <div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Upload attendee CSV</h3>
-            <p className="text-sm text-slate-500">
-              CSV must include a <code className="font-mono">full_name</code> column. All rows apply to the selected event.
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              CSV must include a <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">full_name</code> column. All rows apply to the selected event.
             </p>
           </div>
         </div>
@@ -1213,8 +1213,8 @@ const CertificatesManager: React.FC = () => {
           <div
             className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm ${
               csvMessage.type === 'success'
-                ? 'bg-green-50 text-green-700 border border-green-100'
-                : 'bg-red-50 text-red-700 border border-red-100'
+                ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-100 dark:border-green-800'
+                : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-800'
             }`}
           >
             {csvMessage.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
@@ -1224,7 +1224,7 @@ const CertificatesManager: React.FC = () => {
 
         <div className="flex flex-wrap items-center gap-3">
           <label
-            className="inline-flex items-center gap-2 rounded-xl border border-dashed border-slate-300 px-4 py-2 text-sm font-semibold cursor-pointer hover:border-google-blue/50"
+            className="inline-flex items-center gap-2 rounded-xl border border-dashed border-slate-300 dark:border-white/20 px-4 py-2 text-sm font-semibold cursor-pointer hover:border-google-blue/50 dark:hover:border-google-blue/60 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors duration-150"
           >
             <UploadCloud size={16} />
             {uploadingCsv ? 'Uploading…' : 'Select CSV'}
@@ -1241,15 +1241,15 @@ const CertificatesManager: React.FC = () => {
               }}
             />
           </label>
-          <span className="text-xs text-slate-500">
-            Example row: <code>"Juan Dela Cruz"</code>
+          <span className="text-xs text-slate-600 dark:text-slate-400">
+            Example row: <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">"Juan Dela Cruz"</code>
           </span>
         </div>
 
         {csvPreview.length > 0 && (
-          <div className="rounded-xl border border-slate-200 p-4">
-            <p className="text-sm font-semibold mb-2 text-slate-700">Preview (first {csvPreview.length} names)</p>
-            <ul className="text-sm text-slate-600 space-y-1">
+          <div className="rounded-xl border border-slate-200 dark:border-white/10 p-4 bg-white dark:bg-slate-800/50">
+            <p className="text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">Preview (first {csvPreview.length} names)</p>
+            <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1">
               {csvPreview.map(att => (
                 <li key={att.id} className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-google-blue inline-block" />
