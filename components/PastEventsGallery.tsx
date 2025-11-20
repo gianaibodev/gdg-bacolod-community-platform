@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Event } from '../types';
 import { getPastEvents } from '../services/mockCms';
+import { X, Maximize2 } from 'lucide-react';
 
 const PastEventsGallery: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [isVisible, setIsVisible] = useState(false);
+  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,6 +52,30 @@ const PastEventsGallery: React.FC = () => {
     e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
   };
 
+  const handleImageClick = (imageUrl: string) => {
+    setFullscreenImage(imageUrl);
+  };
+
+  const closeFullscreen = () => {
+    setFullscreenImage(null);
+  };
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closeFullscreen();
+      }
+    };
+    if (fullscreenImage) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+    };
+  }, [fullscreenImage]);
+
   return (
     <section id="gallery" ref={sectionRef} className="py-40 bg-white dark:bg-[#121212] transition-colors duration-500 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -89,15 +115,41 @@ const PastEventsGallery: React.FC = () => {
               <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none mix-blend-overlay"></div>
 
               {/* Floating Icon */}
-              <div className="absolute bottom-8 right-8 w-16 h-16 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
-                 </svg>
+              <div 
+                className="absolute bottom-8 right-8 w-16 h-16 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleImageClick(event.imageUrl);
+                }}
+              >
+                <Maximize2 size={28} />
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {/* Fullscreen Modal */}
+      {fullscreenImage && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-4"
+          onClick={closeFullscreen}
+        >
+          <button
+            onClick={closeFullscreen}
+            className="absolute top-4 right-4 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors duration-150 z-10"
+            aria-label="Close fullscreen"
+          >
+            <X size={24} />
+          </button>
+          <img 
+            src={fullscreenImage} 
+            alt="Event fullscreen" 
+            className="max-w-full max-h-full object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </section>
   );
 };

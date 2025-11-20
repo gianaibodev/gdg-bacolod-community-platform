@@ -29,7 +29,7 @@ const Partners: React.FC = () => {
               <img 
                 src={partner.logoUrl} 
                 alt={partner.name} 
-                className="w-full h-auto object-contain dark:invert dark:brightness-0 dark:contrast-200 grayscale hover:grayscale-0 transition-all" 
+                className="w-full h-auto object-contain transition-all duration-300" 
               />
             </a>
           ))}

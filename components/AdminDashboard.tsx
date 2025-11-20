@@ -22,6 +22,8 @@ import {
   AlertCircle,
   CheckCircle2,
   FileSpreadsheet,
+  Moon,
+  Sun,
 } from 'lucide-react';
 import CertificateGenerator from './CertificateGenerator';
 import {
@@ -31,33 +33,89 @@ import {
   bulkSaveCertificateAttendees,
 } from '../services/mockCms';
 
-const AdminNavBar: React.FC = () => (
-  <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/70 dark:border-white/10">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-      <a href="/" className="flex items-center gap-3 group">
-        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-google-blue via-google-red to-google-yellow text-white font-black flex items-center justify-center shadow-lg shadow-blue-500/30">
-          &lt;/&gt;
+const AdminNavBar: React.FC<{ darkMode: boolean; toggleTheme: () => void }> = ({ darkMode, toggleTheme }) => {
+  const [mounted, setMounted] = React.useState(false);
+  
+  React.useEffect(() => {
+    setMounted(true);
+    // Check localStorage or system preference
+    const saved = localStorage.getItem('adminDarkMode');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = saved ? saved === 'true' : prefersDark;
+    
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  return (
+    <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/70 dark:border-white/10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+        <a href="/" className="flex items-center gap-3 group">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-google-blue via-google-red to-google-yellow text-white font-black flex items-center justify-center shadow-lg shadow-blue-500/30">
+            &lt;/&gt;
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 tracking-[0.3em] uppercase">GDG Bacolod</p>
+            <p className="text-lg font-bold text-slate-900 dark:text-white">Admin Portal</p>
+          </div>
+        </a>
+        <div className="flex items-center gap-3">
+          {mounted && (
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-150 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              aria-label="Toggle dark mode"
+            >
+              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+          )}
+          <a
+            href="/"
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-white/20 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition duration-150"
+          >
+            Back to site
+          </a>
         </div>
-        <div>
-          <p className="text-sm font-semibold text-slate-500 tracking-[0.3em] uppercase">GDG Bacolod</p>
-          <p className="text-lg font-bold text-slate-900 dark:text-white">Admin Portal</p>
-        </div>
-      </a>
-      <a
-        href="/"
-        className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-white/20 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition"
-      >
-        Back to site
-      </a>
-    </div>
-  </header>
-);
+      </div>
+    </header>
+  );
+};
 
 const AdminDashboard: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState<'events' | 'team' | 'partners' | 'certificates'>('events');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Handle Dark Mode
+  useEffect(() => {
+    const saved = localStorage.getItem('adminDarkMode');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = saved ? saved === 'true' : prefersDark;
+    setDarkMode(isDark);
+    
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('adminDarkMode', String(newDarkMode));
+    
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
 
   // Login Logic
   const handleLogin = (e: React.FormEvent) => {
@@ -71,33 +129,33 @@ const AdminDashboard: React.FC = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#0B0B0F] flex flex-col">
-        <AdminNavBar />
+      <div className="min-h-screen bg-slate-50 dark:bg-[#0B0B0F] flex flex-col transition-colors duration-150">
+        <AdminNavBar darkMode={darkMode} toggleTheme={toggleTheme} />
         <div className="flex-1 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 p-8 md:p-10 rounded-2xl md:rounded-3xl shadow-xl w-full max-w-md border border-slate-100 dark:border-white/10">
+          <div className="bg-white dark:bg-slate-900 p-8 md:p-10 rounded-2xl md:rounded-3xl shadow-xl w-full max-w-md border border-slate-100 dark:border-white/10 transition-colors duration-150">
           <div className="text-center mb-8 md:mb-10">
-             <div className="w-14 h-14 md:w-16 md:h-16 bg-google-blue/10 rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6">
-                <LayoutDashboard className="text-google-blue" size={28} />
+             <div className="w-14 h-14 md:w-16 md:h-16 bg-google-blue/10 dark:bg-google-blue/20 rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6">
+                <LayoutDashboard className="text-google-blue dark:text-google-blue" size={28} />
              </div>
-             <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">Admin Portal</h2>
-             <p className="text-sm md:text-base text-slate-500">Welcome back! Please sign in to continue.</p>
+             <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-2">Admin Portal</h2>
+             <p className="text-sm md:text-base text-slate-500 dark:text-slate-400">Welcome back! Please sign in to continue.</p>
           </div>
           <form onSubmit={handleLogin} className="space-y-5 md:space-y-6">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">Password</label>
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Password</label>
               <input 
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all"
+                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all duration-150"
                 placeholder="Enter access key"
               />
             </div>
-            <button type="submit" className="w-full bg-google-blue text-white py-3 md:py-3.5 rounded-xl font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/30 hover:scale-[1.02]">
+            <button type="submit" className="w-full bg-google-blue text-white py-3 md:py-3.5 rounded-xl font-bold hover:bg-blue-600 transition-all duration-150 shadow-lg shadow-blue-500/30 hover:scale-[1.02]">
               Access Dashboard
             </button>
             <div className="text-center">
-                <span className="text-xs text-slate-400 bg-slate-100 px-3 py-1 rounded-full">Hint: gdgbacolod</span>
+                <span className="text-xs text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">Hint: gdgbacolod</span>
             </div>
           </form>
         </div>
@@ -107,8 +165,8 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0B0F] flex flex-col font-sans text-slate-900">
-      <AdminNavBar />
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0B0F] flex flex-col font-sans text-slate-900 dark:text-slate-100 transition-colors duration-150">
+      <AdminNavBar darkMode={darkMode} toggleTheme={toggleTheme} />
       <div className="flex flex-1">
       {/* Mobile Overlay */}
       {sidebarOpen && (
@@ -121,12 +179,12 @@ const AdminDashboard: React.FC = () => {
       {/* Sidebar */}
       <aside className={`
         fixed md:static
-        w-72 bg-white border-r border-slate-200 flex flex-col h-full z-40 md:z-20 shadow-lg md:shadow-sm
-        transform transition-transform duration-300 ease-in-out
+        w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full z-40 md:z-20 shadow-lg md:shadow-sm
+        transform transition-all duration-150 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
-        <div className="p-6 md:p-8 flex items-center justify-between border-b border-slate-100 md:border-none">
-          <h1 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-slate-900">
+        <div className="p-6 md:p-8 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 md:border-none">
+          <h1 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-slate-900 dark:text-white">
              <div className="w-9 h-9 md:w-10 md:h-10 bg-google-blue rounded-lg flex items-center justify-center text-white">
                 <LayoutDashboard size={18} />
              </div>
@@ -134,39 +192,39 @@ const AdminDashboard: React.FC = () => {
           </h1>
           <button 
             onClick={() => setSidebarOpen(false)}
-            className="md:hidden p-2 hover:bg-slate-100 rounded-lg"
+            className="md:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-400 transition-colors duration-150"
           >
             <X size={20} />
           </button>
         </div>
         
         <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
-          <p className="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Menu</p>
+          <p className="px-4 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Menu</p>
           <button 
             onClick={() => { setActiveTab('events'); setSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-medium ${activeTab === 'events' ? 'bg-google-blue/10 text-google-blue' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-150 font-medium ${activeTab === 'events' ? 'bg-google-blue/10 dark:bg-google-blue/20 text-google-blue' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'}`}
           >
             <Calendar size={20} /> Events
             {activeTab === 'events' && <ChevronRight size={16} className="ml-auto opacity-50" />}
           </button>
           <button 
             onClick={() => { setActiveTab('team'); setSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-medium ${activeTab === 'team' ? 'bg-google-blue/10 text-google-blue' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-150 font-medium ${activeTab === 'team' ? 'bg-google-blue/10 dark:bg-google-blue/20 text-google-blue' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'}`}
           >
             <Users size={20} /> Team
             {activeTab === 'team' && <ChevronRight size={16} className="ml-auto opacity-50" />}
           </button>
           <button 
             onClick={() => { setActiveTab('partners'); setSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-medium ${activeTab === 'partners' ? 'bg-google-blue/10 text-google-blue' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-150 font-medium ${activeTab === 'partners' ? 'bg-google-blue/10 dark:bg-google-blue/20 text-google-blue' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'}`}
           >
             <Award size={20} /> Partners
             {activeTab === 'partners' && <ChevronRight size={16} className="ml-auto opacity-50" />}
           </button>
           <button 
             onClick={() => { setActiveTab('certificates'); setSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-medium ${
-              activeTab === 'certificates' ? 'bg-google-blue/10 text-google-blue' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-150 font-medium ${
+              activeTab === 'certificates' ? 'bg-google-blue/10 dark:bg-google-blue/20 text-google-blue' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <FileText size={20} /> Certificates
@@ -174,10 +232,10 @@ const AdminDashboard: React.FC = () => {
           </button>
         </nav>
 
-        <div className="p-4 border-t border-slate-100">
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800">
           <button 
             onClick={() => setIsAuthenticated(false)}
-            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-red-500 hover:bg-red-50 transition-colors font-medium"
+            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-150 font-medium"
           >
             <LogOut size={20} /> Sign Out
           </button>
@@ -187,30 +245,30 @@ const AdminDashboard: React.FC = () => {
       {/* Main Content */}
       <main className="flex-1 md:ml-72 w-full min-w-0">
         {/* Mobile Header */}
-        <div className="md:hidden sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+        <div className="md:hidden sticky top-0 z-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-3 flex items-center justify-between transition-colors duration-150">
           <button 
             onClick={() => setSidebarOpen(true)}
-            className="p-2 hover:bg-slate-100 rounded-lg"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-400 transition-colors duration-150"
           >
             <Menu size={24} />
           </button>
-          <h2 className="text-lg font-bold text-slate-900 capitalize">{activeTab} Management</h2>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white capitalize">{activeTab} Management</h2>
           <div className="w-10" /> {/* Spacer */}
         </div>
 
         <div className="p-4 md:p-8 lg:p-12 max-w-7xl mx-auto">
           <header className="mb-6 md:mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 capitalize mb-2">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white capitalize mb-2">
               {activeTab === 'certificates' ? 'Certificates' : activeTab} Management
             </h2>
-            <p className="text-sm md:text-base text-slate-500 hidden md:block">
+            <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 hidden md:block">
               {activeTab === 'certificates'
                 ? 'Generate and download certificates for your attendees.'
                 : `Manage your community ${activeTab} efficiently.`}
             </p>
           </header>
 
-          <div className="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-slate-200 overflow-hidden min-h-[400px]">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden min-h-[400px] transition-colors duration-150">
             {activeTab === 'events' && <EventsManager />}
             {activeTab === 'team' && <TeamManager />}
             {activeTab === 'partners' && <PartnersManager />}
