@@ -44,7 +44,7 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleTheme }) => {
           <div className="h-8 flex items-center">
              {!logoError ? (
                 <img 
-                  src="https://i.postimg.cc/7CnMJDwq/GDG-Bacolod.png" 
+                  src="https://www.svgrepo.com/show/353810/google-developers.svg" 
                   alt="GDG Bacolod" 
                   className={`h-full w-auto object-contain transition-transform group-hover:scale-105 duration-300 ${darkMode ? 'brightness-0 invert' : ''}`}
                   onError={(e) => {

@@ -19,9 +19,10 @@ const DEFAULT_EVENTS: Event[] = [
     venue: '',
     description: '',
     registrationLink: '',
-    imageUrl: 'https://scontent-sin6-2.xx.fbcdn.net/v/t39.30808-6/473830459_122183337692100644_51410807122020925_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=86c6b0&_nc_eui2=AeFHZUMUbiWJGZMe5e96nwmaj5APboR8xz-PkA9uhHzHP31ED-qCMeftk_1UOsM-tD_h6DBqfF5SQRpDCLduipzP&_nc_ohc=78xSlvRrNtwQ7kNvwFJ50IT&_nc_oc=AdkWJEF3eCRLQdMTnZmNic8Yzmqiu5UPTTeQPfMgehcivd3-o4FtcT2wlgKvD_mOb4A&_nc_zt=23&_nc_ht=scontent-sin6-2.xx&_nc_gid=yMOkKfiOmhq1L-nGwBcTfQ&oh=00_AfihBNi5VMQBSOH2eqMyjffGPfOONAm-maSzcqvygj2XPw&oe=6923A904',
+    imageUrl:
+      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Cdefs%3E%3ClinearGradient id='devfest-grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%234285F4'/%3E%3Cstop offset='50%25' stop-color='%23DB4437'/%3E%3Cstop offset='100%25' stop-color='%23F4B400'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='800' height='600' fill='url(%23devfest-grad)'/%3E%3Ctext x='50%25' y='45%25' text-anchor='middle' fill='white' font-family='system-ui' font-size='40' font-weight='700'%3EDevFest Bacolod%3C/text%3E%3Ctext x='50%25' y='58%25' text-anchor='middle' fill='white' font-family='system-ui' font-size='24' font-weight='500'%3E2024 • Google Developer Group%3C/text%3E%3C/svg%3E",
     category: 'Social',
-    status: 'past'
+    status: 'past',
   },
   {
     id: 'e2',
@@ -31,9 +32,10 @@ const DEFAULT_EVENTS: Event[] = [
     venue: '',
     description: '',
     registrationLink: '',
-    imageUrl: 'https://scontent-sin2-2.xx.fbcdn.net/v/t39.30808-6/466926425_122175173912100644_8522813837842720168_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=86c6b0&_nc_eui2=AeFYmRRIoBhAIEbOgk3dttH2ccbImREzd5BxxsiZETN3kADqKQezpkpJGyFCbS9llCuof5cVcfeO86RK67bDJk7r&_nc_ohc=-efqGLJAiJEQ7kNvwGxj-eX&_nc_oc=AdnlR6m_D2HWySDooEjcgztNek9PPzec9poLQy59VD8WENpVlIgH8_lu1-QrgcCgfXs&_nc_zt=23&_nc_ht=scontent-sin2-2.xx&_nc_gid=VjDe98wx8Fbgueug7fRFng&oh=00_AfhOw9LBM9yA9trV9kKXjdSELrTEro5iS365bO1KniBOuQ&oe=6923A6AA',
+    imageUrl:
+      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect width='800' height='600' fill='%230F172A'/%3E%3Ccircle cx='200' cy='300' r='80' fill='%234285F4'/%3E%3Crect x='360' y='180' width='40' height='240' rx='20' fill='%23F4B400'/%3E%3Ctext x='50%25' y='80' text-anchor='middle' fill='white' font-family='system-ui' font-size='40' font-weight='700'%3EGoogle I/O Extended%3C/text%3E%3Ctext x='50%25' y='130' text-anchor='middle' fill='%239CA3AF' font-family='system-ui' font-size='22'%3EBacolod • 2024%3C/text%3E%3C/svg%3E",
     category: 'Talk',
-    status: 'past'
+    status: 'past',
   },
   {
     id: 'e3',
@@ -43,10 +45,11 @@ const DEFAULT_EVENTS: Event[] = [
     venue: '',
     description: '',
     registrationLink: '',
-    imageUrl: 'https://scontent-sin6-2.xx.fbcdn.net/v/t39.30808-6/399936282_122104125434100644_4641908214210992902_n.png?stp=dst-jpg_tt6&_nc_cat=109&ccb=1-7&_nc_sid=86c6b0&_nc_eui2=AeH8ZbZrWMLH-3cZVrueLY_bBkZKabX6racGRkpptfqtpzlt_Pzr76DaqdLmQWwTHbZSoW52RTbIaFGDQPGiepFB&_nc_ohc=p8hMW4WL6sQQ7kNvwEM5Ueo&_nc_oc=Adl1V3gzF1rcqqcHLGFlcJbI4dLfD45AWfQ6dcPAMa7pgQg3u91cBwgjy9FWYahdQG4&_nc_zt=23&_nc_ht=scontent-sin6-2.xx&_nc_gid=RmftI3sw2b-6FHXe8wnmlg&oh=00_Afhe7kGCj3zY8UdK2OoH4kkRNc4QyqHA98Mo2SCkKCb38A&oe=6923B7AB',
+    imageUrl:
+      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Cdefs%3E%3ClinearGradient id='wtm-grad' x1='0%25' y1='0%25' x2='100%25' y2='0%25'%3E%3Cstop offset='0%25' stop-color='%23EC4899'/%3E%3Cstop offset='50%25' stop-color='%238B5CF6'/%3E%3Cstop offset='100%25' stop-color='%2343B581'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='800' height='600' fill='%23102032'/%3E%3Crect x='140' y='180' width='160' height='240' rx='24' fill='url(%23wtm-grad)' opacity='0.9'/%3E%3Crect x='340' y='180' width='160' height='240' rx='24' fill='url(%23wtm-grad)' opacity='0.7'/%3E%3Crect x='540' y='180' width='160' height='240' rx='24' fill='url(%23wtm-grad)' opacity='0.5'/%3E%3Ctext x='50%25' y='120' text-anchor='middle' fill='white' font-family='system-ui' font-size='38' font-weight='700'%3EWomen Techmakers%3C/text%3E%3Ctext x='50%25' y='165' text-anchor='middle' fill='%23E5E7EB' font-family='system-ui' font-size='22'%3EBacolod • 2024%3C/text%3E%3C/svg%3E",
     category: 'Workshop',
-    status: 'past'
-  }
+    status: 'past',
+  },
 ];
 
 const DEFAULT_TEAM: TeamMember[] = [

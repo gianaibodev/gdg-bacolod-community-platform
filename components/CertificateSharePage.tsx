@@ -216,7 +216,7 @@ const CertificateSharePage: React.FC = () => {
                 className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
               >
                 <img
-                  src="https://i.postimg.cc/7CnMJDwq/GDG-Bacolod.png"
+                  src="https://www.svgrepo.com/show/353810/google-developers.svg"
                   alt="GDG Bacolod"
                   className="h-8 w-auto object-contain dark:brightness-0 dark:invert"
                   onError={(e) => {

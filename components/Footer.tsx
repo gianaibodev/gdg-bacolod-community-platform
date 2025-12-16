@@ -11,8 +11,8 @@ const Footer: React.FC = () => {
             <div className="flex items-center gap-3 group">
                {/* Footer Logo - Same logic as Navbar */}
                <div className="relative h-8 w-auto flex items-center">
-                 <img 
-                    src="https://i.postimg.cc/7CnMJDwq/GDG-Bacolod.png" 
+                  <img 
+                    src="https://www.svgrepo.com/show/353810/google-developers.svg" 
                     alt="GDG Bacolod" 
                     className="h-full w-auto object-contain grayscale hover:grayscale-0 transition-all duration-500"
                     onError={(e) => {
