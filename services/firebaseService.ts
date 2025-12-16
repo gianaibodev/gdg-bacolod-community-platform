@@ -196,22 +196,95 @@ export const isTemporaryImageUrl = (url: string): boolean => {
   return temporaryHosts.some(host => url.includes(host));
 };
 
+// Check if an image URL is still accessible
+export const checkImageAccessible = async (imageUrl: string): Promise<{ accessible: boolean; error?: string }> => {
+  try {
+    const response = await fetch(imageUrl, { 
+      method: 'HEAD',
+      mode: 'cors',
+      cache: 'no-cache'
+    });
+    
+    if (response.ok && response.headers.get('content-type')?.startsWith('image/')) {
+      return { accessible: true };
+    } else {
+      return { accessible: false, error: 'Image not found or not accessible' };
+    }
+  } catch (error: any) {
+    // Try GET request as fallback (some servers don't support HEAD)
+    try {
+      const getResponse = await fetch(imageUrl, { 
+        method: 'GET',
+        mode: 'cors',
+        cache: 'no-cache',
+        signal: AbortSignal.timeout(5000) // 5 second timeout
+      });
+      
+      if (getResponse.ok) {
+        const contentType = getResponse.headers.get('content-type');
+        if (contentType?.startsWith('image/')) {
+          return { accessible: true };
+        }
+      }
+      return { accessible: false, error: 'Image URL returned non-image content' };
+    } catch (getError: any) {
+      return { 
+        accessible: false, 
+        error: getError.message || 'Network error or CORS blocked' 
+      };
+    }
+  }
+};
+
 // Download and re-host an image from a URL to Firebase Storage
 export const rehostImage = async (imageUrl: string, folder: string = 'images'): Promise<string> => {
+  // First check if image is accessible
+  const checkResult = await checkImageAccessible(imageUrl);
+  if (!checkResult.accessible) {
+    throw new Error(checkResult.error || 'Image is not accessible. URL may be expired.');
+  }
+
   if (!storage || !useFirebase) {
-    // Fallback: return original URL
-    return imageUrl;
+    // Fallback: convert to data URL if Firebase not available
+    try {
+      const response = await fetch(imageUrl, { mode: 'cors' });
+      if (!response.ok) {
+        throw new Error('Failed to fetch image');
+      }
+      const blob = await response.blob();
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      throw new Error('Failed to download image. URL may be expired.');
+    }
   }
 
   try {
-    // Fetch the image
-    const response = await fetch(imageUrl, { mode: 'cors' });
+    // Fetch the image with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
+    const response = await fetch(imageUrl, { 
+      mode: 'cors',
+      signal: controller.signal,
+      cache: 'no-cache'
+    });
+    clearTimeout(timeoutId);
+    
     if (!response.ok) {
-      throw new Error('Failed to fetch image');
+      throw new Error(`HTTP ${response.status}: Failed to fetch image`);
     }
     
     const blob = await response.blob();
-    const file = new File([blob], `rehosted_${Date.now()}.${blob.type.split('/')[1] || 'jpg'}`, { type: blob.type });
+    if (!blob.type.startsWith('image/')) {
+      throw new Error('URL does not point to an image');
+    }
+    
+    const fileExtension = blob.type.split('/')[1] || 'jpg';
+    const file = new File([blob], `rehosted_${Date.now()}.${fileExtension}`, { type: blob.type });
     
     // Upload to Firebase Storage
     const timestamp = Date.now();
@@ -221,10 +294,12 @@ export const rehostImage = async (imageUrl: string, folder: string = 'images'): 
     await uploadBytes(storageRef, file);
     const downloadURL = await getDownloadURL(storageRef);
     return downloadURL;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error re-hosting image:', error);
-    // Return original URL if re-hosting fails
-    return imageUrl;
+    if (error.name === 'AbortError') {
+      throw new Error('Request timed out. Image may be too large or server is slow.');
+    }
+    throw new Error(error.message || 'Failed to re-host image. URL may be expired.');
   }
 };
 

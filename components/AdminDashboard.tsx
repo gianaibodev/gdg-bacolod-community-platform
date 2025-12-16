@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Event, TeamMember, Partner, CertificateTemplate, CertificateAttendee } from '../types';
 import * as CMS from '../services/mockCms';
-import { uploadImage, isValidImageUrl, isTemporaryImageUrl, rehostImage } from '../services/firebaseService';
+import { uploadImage, isValidImageUrl, isTemporaryImageUrl, rehostImage, checkImageAccessible } from '../services/firebaseService';
 import {
   Trash2,
   Edit,
@@ -331,6 +331,8 @@ const EventsManager: React.FC = () => {
   const [formData, setFormData] = useState<Partial<Event>>({});
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
+  const [checkingImage, setCheckingImage] = useState(false);
+  const [imageStatus, setImageStatus] = useState<{ accessible: boolean; error?: string } | null>(null);
 
   const fetchEvents = async () => {
     const data = await CMS.getAllEvents();
@@ -342,6 +344,14 @@ const EventsManager: React.FC = () => {
   const handleEdit = (event: Event) => {
     setEditingId(event.id);
     setFormData(event);
+    setImageError(null);
+    setImageStatus(null);
+    // Check image accessibility when editing
+    if (event.imageUrl) {
+      checkImageAccessible(event.imageUrl).then(setImageStatus).catch(() => {
+        setImageStatus({ accessible: false, error: 'Failed to check' });
+      });
+    }
   };
 
   const handleNew = () => {
@@ -555,6 +565,92 @@ const EventsManager: React.FC = () => {
                    </div>
                  )}
                  
+                 {/* Check Image Status Button */}
+                 {formData.imageUrl && (
+                   <button
+                     type="button"
+                     onClick={async () => {
+                       setCheckingImage(true);
+                       setImageError(null);
+                       try {
+                         const status = await checkImageAccessible(formData.imageUrl!);
+                         setImageStatus(status);
+                         if (status.accessible) {
+                           alert('✅ Image is still accessible! You can re-host it to make it permanent.');
+                         } else {
+                           alert(`❌ Image is not accessible: ${status.error || 'URL may be expired'}\n\nTry:\n1. Check if you have the original image file\n2. Check Wayback Machine (archive.org)\n3. Check browser cache (if you visited before)\n4. Upload a new image`);
+                         }
+                       } catch (error: any) {
+                         setImageStatus({ accessible: false, error: error.message });
+                         alert('Failed to check image status.');
+                       } finally {
+                         setCheckingImage(false);
+                       }
+                     }}
+                     disabled={checkingImage}
+                     className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                   >
+                     {checkingImage ? (
+                       <>
+                         <Loader2 className="animate-spin" size={16} />
+                         Checking...
+                       </>
+                     ) : (
+                       <>
+                         <ImageIcon size={16} />
+                         Check if Image Can Be Retrieved
+                       </>
+                     )}
+                   </button>
+                 )}
+                 
+                 {/* Image Status Display */}
+                 {imageStatus && (
+                   <div className={`p-3 rounded-lg border-2 ${
+                     imageStatus.accessible 
+                       ? 'bg-green-50 dark:bg-green-900/20 border-green-500' 
+                       : 'bg-red-50 dark:bg-red-900/20 border-red-500'
+                   }`}>
+                     <div className="flex items-start gap-2">
+                       {imageStatus.accessible ? (
+                         <CheckCircle2 className="text-green-600 dark:text-green-400 mt-0.5" size={20} />
+                       ) : (
+                         <AlertCircle className="text-red-600 dark:text-red-400 mt-0.5" size={20} />
+                       )}
+                       <div className="flex-1">
+                         <p className={`text-sm font-bold ${
+                           imageStatus.accessible 
+                             ? 'text-green-800 dark:text-green-300' 
+                             : 'text-red-800 dark:text-red-300'
+                         }`}>
+                           {imageStatus.accessible 
+                             ? '✅ Image is accessible and can be retrieved!' 
+                             : '❌ Image cannot be retrieved'}
+                         </p>
+                         {imageStatus.error && (
+                           <p className="text-xs text-red-600 dark:text-red-400 mt-1">{imageStatus.error}</p>
+                         )}
+                         {imageStatus.accessible && (
+                           <p className="text-xs text-green-700 dark:text-green-400 mt-1">
+                             Click "Re-host Image" below to save it permanently.
+                           </p>
+                         )}
+                         {!imageStatus.accessible && (
+                           <div className="text-xs text-red-700 dark:text-red-400 mt-2 space-y-1">
+                             <p className="font-bold">Alternatives to recover:</p>
+                             <ul className="list-disc list-inside ml-2 space-y-0.5">
+                               <li>Check your original image files</li>
+                               <li>Try Wayback Machine: archive.org</li>
+                               <li>Check browser cache (if visited before)</li>
+                               <li>Re-upload the image file</li>
+                             </ul>
+                           </div>
+                         )}
+                       </div>
+                     </div>
+                   </div>
+                 )}
+                 
                  {/* Re-host button for temporary URLs - Try even if broken */}
                  {formData.imageUrl && isTemporaryImageUrl(formData.imageUrl) && (
                    <button
@@ -566,33 +662,42 @@ const EventsManager: React.FC = () => {
                          const newUrl = await rehostImage(formData.imageUrl!, 'events');
                          if (newUrl && newUrl !== formData.imageUrl) {
                            setFormData({...formData, imageUrl: newUrl});
+                           setImageStatus({ accessible: true });
                            alert('✅ Image re-hosted successfully! It will now work permanently.');
                          } else {
                            setImageError('Could not re-host image. The URL may be completely expired. Please upload the image file instead.');
+                           setImageStatus({ accessible: false, error: 'Re-hosting failed' });
                          }
-                       } catch (error) {
-                         setImageError('Failed to re-host image. The URL may be expired. Please upload the image file manually.');
+                       } catch (error: any) {
+                         setImageError(error.message || 'Failed to re-host image. The URL may be expired.');
+                         setImageStatus({ accessible: false, error: error.message });
                          console.error('Re-host error:', error);
                        } finally {
                          setUploadingImage(false);
                        }
                      }}
-                     disabled={uploadingImage}
+                     disabled={uploadingImage || (imageStatus && !imageStatus.accessible)}
                      className={`w-full px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 ${
-                       imageError 
-                         ? 'bg-red-500 hover:bg-red-600 text-white' 
-                         : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                       imageStatus && !imageStatus.accessible
+                         ? 'bg-gray-400 cursor-not-allowed'
+                         : imageError 
+                           ? 'bg-red-500 hover:bg-red-600 text-white' 
+                           : 'bg-yellow-500 hover:bg-yellow-600 text-white'
                      }`}
                    >
                      {uploadingImage ? (
                        <>
                          <Loader2 className="animate-spin" size={16} />
-                         Trying to Re-host...
+                         Retrieving & Re-hosting...
                        </>
                      ) : (
                        <>
                          <UploadCloud size={16} />
-                         {imageError ? 'Try Re-hosting (May Not Work)' : 'Re-host Image (Make Permanent)'}
+                         {imageStatus && !imageStatus.accessible 
+                           ? 'Image Cannot Be Retrieved' 
+                           : imageError 
+                             ? 'Try Re-hosting Again' 
+                             : 'Re-host Image (Make Permanent)'}
                        </>
                      )}
                    </button>
