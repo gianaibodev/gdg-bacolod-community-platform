@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Event, TeamMember, Partner, CertificateTemplate, CertificateAttendee } from '../types';
 import * as CMS from '../services/mockCms';
-import { uploadImage, isValidImageUrl } from '../services/firebaseService';
+import { uploadImage, isValidImageUrl, isTemporaryImageUrl, rehostImage } from '../services/firebaseService';
 import {
   Trash2,
   Edit,
@@ -524,13 +524,54 @@ const EventsManager: React.FC = () => {
                        alt="Preview" 
                        className="w-full h-full object-cover"
                        onError={(e) => {
-                         setImageError('Failed to load image. Please check the URL.');
+                         setImageError('Failed to load image. This URL may have expired. Please upload a new image or use a permanent hosting service.');
                          (e.target as HTMLImageElement).style.display = 'none';
                        }}
                        onLoad={() => setImageError(null)}
                      />
                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">Preview</div>
+                     {isTemporaryImageUrl(formData.imageUrl) && (
+                       <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1">
+                         <AlertCircle size={10} />
+                         May Expire
+                       </div>
+                     )}
                    </div>
+                 )}
+                 
+                 {/* Re-host button for temporary URLs */}
+                 {formData.imageUrl && isTemporaryImageUrl(formData.imageUrl) && !imageError && (
+                   <button
+                     type="button"
+                     onClick={async () => {
+                       setUploadingImage(true);
+                       setImageError(null);
+                       try {
+                         const newUrl = await rehostImage(formData.imageUrl!, 'events');
+                         setFormData({...formData, imageUrl: newUrl});
+                         alert('Image re-hosted successfully! It will now work permanently.');
+                       } catch (error) {
+                         setImageError('Failed to re-host image. Please upload it manually.');
+                         console.error('Re-host error:', error);
+                       } finally {
+                         setUploadingImage(false);
+                       }
+                     }}
+                     disabled={uploadingImage}
+                     className="w-full px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                   >
+                     {uploadingImage ? (
+                       <>
+                         <Loader2 className="animate-spin" size={16} />
+                         Re-hosting...
+                       </>
+                     ) : (
+                       <>
+                         <UploadCloud size={16} />
+                         Re-host Image (Make Permanent)
+                       </>
+                     )}
+                   </button>
                  )}
                </div>
              </div>
@@ -580,7 +621,19 @@ const EventsManager: React.FC = () => {
                       <td className="p-3 md:p-5">
                          <div className="flex items-center gap-3 md:gap-4">
                              {event.imageUrl && (
-                               <img src={event.imageUrl} alt="" className="w-10 h-10 md:w-12 md:h-12 rounded-lg object-cover bg-slate-100 dark:bg-slate-800 flex-shrink-0" />
+                               <div className="relative">
+                                 <img 
+                                   src={event.imageUrl} 
+                                   alt="" 
+                                   className="w-10 h-10 md:w-12 md:h-12 rounded-lg object-cover bg-slate-100 dark:bg-slate-800 flex-shrink-0"
+                                   onError={(e) => {
+                                     (e.target as HTMLImageElement).style.display = 'none';
+                                   }}
+                                 />
+                                 {isTemporaryImageUrl(event.imageUrl) && (
+                                   <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-500 rounded-full border-2 border-white dark:border-slate-900" title="Image URL may expire"></div>
+                                 )}
+                               </div>
                              )}
                              <div className="min-w-0">
                                  <div className="font-bold text-slate-900 dark:text-white text-sm md:text-lg truncate">{event.title}</div>
@@ -762,17 +815,59 @@ const TeamManager: React.FC = () => {
                  
                  {/* Preview */}
                  {formData.photoUrl && !photoError && (
-                   <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-slate-800 flex-shrink-0">
-                     <img 
-                       src={formData.photoUrl} 
-                       alt="Preview" 
-                       className="w-full h-full object-cover"
-                       onError={(e) => {
-                         setPhotoError('Failed to load image. Please check the URL.');
-                         (e.target as HTMLImageElement).style.display = 'none';
-                       }}
-                       onLoad={() => setPhotoError(null)}
-                     />
+                   <div className="space-y-3">
+                     <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-slate-800 flex-shrink-0 relative">
+                       <img 
+                         src={formData.photoUrl} 
+                         alt="Preview" 
+                         className="w-full h-full object-cover"
+                         onError={(e) => {
+                           setPhotoError('Failed to load image. This URL may have expired. Please upload a new image or use a permanent hosting service.');
+                           (e.target as HTMLImageElement).style.display = 'none';
+                         }}
+                         onLoad={() => setPhotoError(null)}
+                       />
+                       {isTemporaryImageUrl(formData.photoUrl) && (
+                         <div className="absolute top-0 right-0 bg-yellow-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">
+                           !
+                         </div>
+                       )}
+                     </div>
+                     
+                     {/* Re-host button for temporary URLs */}
+                     {isTemporaryImageUrl(formData.photoUrl) && (
+                       <button
+                         type="button"
+                         onClick={async () => {
+                           setUploadingPhoto(true);
+                           setPhotoError(null);
+                           try {
+                             const newUrl = await rehostImage(formData.photoUrl!, 'team');
+                             setFormData({...formData, photoUrl: newUrl});
+                             alert('Photo re-hosted successfully! It will now work permanently.');
+                           } catch (error) {
+                             setPhotoError('Failed to re-host image. Please upload it manually.');
+                             console.error('Re-host error:', error);
+                           } finally {
+                             setUploadingPhoto(false);
+                           }
+                         }}
+                         disabled={uploadingPhoto}
+                         className="w-full px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-bold text-xs transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                       >
+                         {uploadingPhoto ? (
+                           <>
+                             <Loader2 className="animate-spin" size={12} />
+                             Re-hosting...
+                           </>
+                         ) : (
+                           <>
+                             <UploadCloud size={12} />
+                             Make Permanent
+                           </>
+                         )}
+                       </button>
+                     )}
                    </div>
                  )}
                </div>
@@ -975,18 +1070,60 @@ const PartnersManager: React.FC = () => {
                  
                  {/* Preview */}
                  {formData.logoUrl && !logoError && (
-                   <div className="w-32 h-32 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex-shrink-0 relative group flex items-center justify-center p-4">
-                     <img 
-                       src={formData.logoUrl} 
-                       alt="Preview" 
-                       className="max-w-full max-h-full object-contain"
-                       onError={(e) => {
-                         setLogoError('Failed to load image. Please check the URL.');
-                         (e.target as HTMLImageElement).style.display = 'none';
-                       }}
-                       onLoad={() => setLogoError(null)}
-                     />
-                     <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">Preview</div>
+                   <div className="space-y-3">
+                     <div className="w-32 h-32 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex-shrink-0 relative group flex items-center justify-center p-4">
+                       <img 
+                         src={formData.logoUrl} 
+                         alt="Preview" 
+                         className="max-w-full max-h-full object-contain"
+                         onError={(e) => {
+                           setLogoError('Failed to load image. This URL may have expired. Please upload a new image or use a permanent hosting service.');
+                           (e.target as HTMLImageElement).style.display = 'none';
+                         }}
+                         onLoad={() => setLogoError(null)}
+                       />
+                       <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">Preview</div>
+                       {isTemporaryImageUrl(formData.logoUrl) && (
+                         <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">
+                           !
+                         </div>
+                       )}
+                     </div>
+                     
+                     {/* Re-host button for temporary URLs */}
+                     {isTemporaryImageUrl(formData.logoUrl) && (
+                       <button
+                         type="button"
+                         onClick={async () => {
+                           setUploadingLogo(true);
+                           setLogoError(null);
+                           try {
+                             const newUrl = await rehostImage(formData.logoUrl!, 'partners');
+                             setFormData({...formData, logoUrl: newUrl});
+                             alert('Logo re-hosted successfully! It will now work permanently.');
+                           } catch (error) {
+                             setLogoError('Failed to re-host image. Please upload it manually.');
+                             console.error('Re-host error:', error);
+                           } finally {
+                             setUploadingLogo(false);
+                           }
+                         }}
+                         disabled={uploadingLogo}
+                         className="w-full px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-bold text-xs transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                       >
+                         {uploadingLogo ? (
+                           <>
+                             <Loader2 className="animate-spin" size={12} />
+                             Re-hosting...
+                           </>
+                         ) : (
+                           <>
+                             <UploadCloud size={12} />
+                             Make Permanent
+                           </>
+                         )}
+                       </button>
+                     )}
                    </div>
                  )}
                </div>

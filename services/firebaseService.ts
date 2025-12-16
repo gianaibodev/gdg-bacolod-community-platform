@@ -183,5 +183,50 @@ export const isValidImageUrl = (url: string): boolean => {
   }
 };
 
+// Check if an image URL is likely to expire (Facebook CDN, temporary hosting, etc.)
+export const isTemporaryImageUrl = (url: string): boolean => {
+  if (!url) return false;
+  const temporaryHosts = [
+    'fbcdn.net',
+    'scontent-',
+    'postimg.cc',
+    'imgur.com/a/', // Imgur albums expire
+    'dropbox.com/s/', // Dropbox temporary links
+  ];
+  return temporaryHosts.some(host => url.includes(host));
+};
+
+// Download and re-host an image from a URL to Firebase Storage
+export const rehostImage = async (imageUrl: string, folder: string = 'images'): Promise<string> => {
+  if (!storage || !useFirebase) {
+    // Fallback: return original URL
+    return imageUrl;
+  }
+
+  try {
+    // Fetch the image
+    const response = await fetch(imageUrl, { mode: 'cors' });
+    if (!response.ok) {
+      throw new Error('Failed to fetch image');
+    }
+    
+    const blob = await response.blob();
+    const file = new File([blob], `rehosted_${Date.now()}.${blob.type.split('/')[1] || 'jpg'}`, { type: blob.type });
+    
+    // Upload to Firebase Storage
+    const timestamp = Date.now();
+    const fileName = `${folder}/rehosted_${timestamp}_${file.name}`;
+    const storageRef = ref(storage, fileName);
+    
+    await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(storageRef);
+    return downloadURL;
+  } catch (error) {
+    console.error('Error re-hosting image:', error);
+    // Return original URL if re-hosting fails
+    return imageUrl;
+  }
+};
+
 export { useFirebase };
 
