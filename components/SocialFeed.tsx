@@ -47,6 +47,10 @@ const SocialFeed: React.FC = () => {
               src={featuredPost.imageUrl} 
               alt="DevFest Bacolod 2025" 
               className="relative z-10 max-h-[600px] w-auto object-contain shadow-2xl"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%234285F4;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23764ba2;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill='url(%23grad)' width='800' height='600'/%3E%3Ctext fill='white' font-family='system-ui' font-size='36' font-weight='bold' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3EDevFest Bacolod 2025%3C/text%3E%3C/svg%3E`;
+              }}
             />
           </div>
 

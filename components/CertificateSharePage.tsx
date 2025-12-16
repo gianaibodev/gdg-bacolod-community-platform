@@ -269,6 +269,10 @@ const CertificateSharePage: React.FC = () => {
                   alt="Certificate"
                   className="w-full h-full object-cover rounded-2xl"
                   crossOrigin="anonymous"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect fill='%23f8f9fa' width='800' height='600'/%3E%3Crect fill='none' stroke='%234285F4' stroke-width='4' x='50' y='50' width='700' height='500' rx='20'/%3E%3Ctext fill='%234285F4' font-family='serif' font-size='48' font-weight='bold' x='400' y='280' text-anchor='middle'%3ECertificate%3C/text%3E%3Ctext fill='%23666' font-family='sans-serif' font-size='24' x='400' y='320' text-anchor='middle'%3EImage not available%3C/text%3E%3C/svg%3E`;
+                  }}
                 />
                 {/* Recipient Name Overlay */}
                 <div

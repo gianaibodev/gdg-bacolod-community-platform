@@ -129,6 +129,10 @@ const About: React.FC = () => {
                      src="https://scontent-sin11-1.xx.fbcdn.net/v/t39.30808-6/475382349_122184384248100644_5124867120317991802_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=f727a1&_nc_eui2=AeF3S8G8iMKJF_3Dvh4WwslxkX4drwhnPbyRfh2vCGc9vHeawSRWPK80ItJN_k9snGrJlxUT1dd0Jb16ur-UYk4p&_nc_ohc=EjtSnJp-EAAQ7kNvwHVT4yj&_nc_oc=AdnM8z9AYmTC1yTru9ucMq2bKrlLqObgTaSRVypdTCZN06e7_pujf3DIZ-UGWIi-8hE&_nc_zt=23&_nc_ht=scontent-sin11-1.xx&_nc_gid=q8KSfontJTtFVcLQiJZpaQ&oh=00_AfjJYoToJFR5rOBaLxXvBbWUSXqIcbxCvvGJ5V-Agw8dRw&oe=6923A6FC" 
                      alt="GDG Bacolod Community" 
                      className="w-full h-full object-cover transition-transform duration-200"
+                     onError={(e) => {
+                       const target = e.target as HTMLImageElement;
+                       target.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='800'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%234285F4;stop-opacity:1' /%3E%3Cstop offset='50%25' style='stop-color:%23DB4437;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23F4B400;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill='url(%23grad)' width='800' height='800'/%3E%3Ctext fill='white' font-family='system-ui' font-size='48' font-weight='bold' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3EGDG Bacolod%3C/text%3E%3C/svg%3E`;
+                     }}
                    />
                    
                    {/* Holographic Shine Overlay */}

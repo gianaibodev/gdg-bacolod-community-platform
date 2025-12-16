@@ -106,6 +106,10 @@ const PastEventsGallery: React.FC = () => {
                 src={event.imageUrl} 
                 alt="Event Highlight" 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect fill='%234285F4' width='800' height='600'/%3E%3Ctext fill='white' font-family='system-ui' font-size='32' font-weight='bold' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3E${encodeURIComponent(event.title)}%3C/text%3E%3C/svg%3E`;
+                }}
               />
               
               {/* Glass Overlay */}
@@ -148,6 +152,10 @@ const PastEventsGallery: React.FC = () => {
             alt="Event fullscreen" 
             className="max-w-full max-h-full object-contain rounded-lg"
             onClick={(e) => e.stopPropagation()}
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect fill='%234285F4' width='800' height='600'/%3E%3Ctext fill='white' font-family='system-ui' font-size='32' font-weight='bold' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3EEvent Image%3C/text%3E%3C/svg%3E`;
+            }}
           />
         </div>
       )}

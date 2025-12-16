@@ -64,6 +64,10 @@ const UpcomingEvents: React.FC = () => {
                   src={event.imageUrl} 
                   alt={event.title} 
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='280'%3E%3Crect fill='%234285F4' width='400' height='280'/%3E%3Ctext fill='white' font-family='system-ui' font-size='20' font-weight='bold' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3E${encodeURIComponent(event.title)}%3C/text%3E%3C/svg%3E`;
+                  }}
                 />
                 <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
                 <div className="absolute top-4 left-4 bg-white/90 dark:bg-black/80 backdrop-blur-sm px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide text-slate-900 dark:text-white shadow-sm z-10">
