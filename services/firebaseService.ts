@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, doc, getDoc, setDoc, deleteDoc, getDocs, query } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { Event, TeamMember, Partner } from './types';
 // Additional certificate types are not required directly here; collections are generic.
 
@@ -15,12 +16,14 @@ const firebaseConfig = {
 
 // Initialize Firebase only if config is provided
 let db: ReturnType<typeof getFirestore> | null = null;
+let storage: ReturnType<typeof getStorage> | null = null;
 let useFirebase = false;
 
 try {
   if (firebaseConfig.projectId && firebaseConfig.apiKey) {
     const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
+    storage = getStorage(app);
     useFirebase = true;
     console.log('✅ Firebase connected - using shared storage');
   } else {
@@ -113,6 +116,70 @@ export const deleteDocument = async (collectionName: string, id: string): Promis
   } catch (error) {
     console.error(`Error deleting ${collectionName}:`, error);
     throw error;
+  }
+};
+
+// Firebase Storage helpers
+export const uploadImage = async (file: File, folder: string = 'images'): Promise<string> => {
+  if (!storage || !useFirebase) {
+    // Fallback: convert to data URL (not ideal for large files)
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  try {
+    const timestamp = Date.now();
+    const fileName = `${folder}/${timestamp}_${file.name}`;
+    const storageRef = ref(storage, fileName);
+    
+    await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(storageRef);
+    return downloadURL;
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    // Fallback to data URL
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(file);
+    });
+  }
+};
+
+export const deleteImage = async (imageUrl: string): Promise<void> => {
+  if (!storage || !useFirebase) return;
+  
+  try {
+    // Extract path from Firebase Storage URL
+    const url = new URL(imageUrl);
+    if (url.hostname.includes('firebasestorage.googleapis.com')) {
+      const path = decodeURIComponent(url.pathname.split('/o/')[1]?.split('?')[0] || '');
+      if (path) {
+        const storageRef = ref(storage, path);
+        await deleteObject(storageRef);
+      }
+    }
+  } catch (error) {
+    console.error('Error deleting image:', error);
+    // Silently fail - image might not be in Firebase Storage
+  }
+};
+
+export const isValidImageUrl = (url: string): boolean => {
+  if (!url) return false;
+  try {
+    const urlObj = new URL(url);
+    // Check if it's a direct image URL
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+    const pathname = urlObj.pathname.toLowerCase();
+    return imageExtensions.some(ext => pathname.endsWith(ext)) || 
+           urlObj.searchParams.has('format') ||
+           url.includes('data:image');
+  } catch {
+    return false;
   }
 };
 

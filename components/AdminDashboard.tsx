@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Event, TeamMember, Partner, CertificateTemplate, CertificateAttendee } from '../types';
 import * as CMS from '../services/mockCms';
+import { uploadImage, isValidImageUrl } from '../services/firebaseService';
 import {
   Trash2,
   Edit,
@@ -328,6 +329,8 @@ const EventsManager: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Event>>({});
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
 
   const fetchEvents = async () => {
     const data = await CMS.getAllEvents();
@@ -421,30 +424,114 @@ const EventsManager: React.FC = () => {
              </div>
 
              <div className="col-span-2">
-               <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Image URL</label>
-               <div className="flex flex-col md:flex-row gap-4 items-start">
-                   <div className="flex-grow w-full">
-                       <input 
-                         className="w-full p-3 border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all duration-150" 
-                         value={formData.imageUrl || ''} 
-                         onChange={e => setFormData({...formData, imageUrl: e.target.value})} 
-                         placeholder="https://..."
-                       />
-                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Paste a direct link to an image</p>
-                   </div>
-                   {formData.imageUrl && (
-                     <div className="w-full md:w-32 h-24 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex-shrink-0 relative group">
-                       <img 
-                         src={formData.imageUrl} 
-                         alt="Preview" 
-                         className="w-full h-full object-cover"
-                         onError={(e) => {
-                           (e.target as HTMLImageElement).style.display = 'none';
-                         }}
-                       />
-                       <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">Preview</div>
+               <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Image</label>
+               <div className="space-y-3">
+                 {/* File Upload */}
+                 <div className="flex flex-col sm:flex-row gap-3">
+                   <label className="flex-1 cursor-pointer">
+                     <input 
+                       type="file" 
+                       accept="image/*"
+                       className="hidden"
+                       onChange={async (e) => {
+                         const file = e.target.files?.[0];
+                         if (!file) return;
+                         
+                         if (file.size > 10 * 1024 * 1024) {
+                           setImageError('Image size must be less than 10MB');
+                           return;
+                         }
+                         
+                         setUploadingImage(true);
+                         setImageError(null);
+                         try {
+                           const url = await uploadImage(file, 'events');
+                           setFormData({...formData, imageUrl: url});
+                         } catch (error) {
+                           setImageError('Failed to upload image. Please try again or use a URL instead.');
+                           console.error('Upload error:', error);
+                         } finally {
+                           setUploadingImage(false);
+                         }
+                       }}
+                       disabled={uploadingImage}
+                     />
+                     <div className={`w-full p-4 border-2 border-dashed rounded-xl transition-all duration-150 ${
+                       uploadingImage 
+                         ? 'border-google-blue bg-google-blue/10' 
+                         : 'border-slate-300 dark:border-slate-600 hover:border-google-blue dark:hover:border-google-blue bg-slate-50 dark:bg-slate-800/50'
+                     }`}>
+                       <div className="flex items-center justify-center gap-3">
+                         {uploadingImage ? (
+                           <>
+                             <Loader2 className="animate-spin text-google-blue" size={20} />
+                             <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Uploading...</span>
+                           </>
+                         ) : (
+                           <>
+                             <UploadCloud className="text-slate-400" size={20} />
+                             <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Upload Image</span>
+                           </>
+                         )}
+                       </div>
                      </div>
+                   </label>
+                 </div>
+                 
+                 {/* URL Input */}
+                 <div className="relative">
+                   <div className="flex items-center gap-2 mb-2">
+                     <span className="text-xs font-medium text-slate-500 dark:text-slate-400">OR</span>
+                     <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
+                   </div>
+                   <input 
+                     className={`w-full p-3 border rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all duration-150 ${
+                       imageError && !formData.imageUrl
+                         ? 'border-red-300 dark:border-red-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white'
+                         : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white'
+                     }`}
+                     value={formData.imageUrl || ''} 
+                     onChange={(e) => {
+                       const url = e.target.value;
+                       setFormData({...formData, imageUrl: url});
+                       if (url && !isValidImageUrl(url) && !url.startsWith('data:')) {
+                         setImageError('Please enter a valid image URL (ends with .jpg, .png, .gif, etc.)');
+                       } else {
+                         setImageError(null);
+                       }
+                     }} 
+                     placeholder="https://example.com/image.jpg"
+                   />
+                   {imageError && (
+                     <p className="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center gap-1">
+                       <AlertCircle size={12} />
+                       {imageError}
+                     </p>
                    )}
+                   {formData.imageUrl && !imageError && isValidImageUrl(formData.imageUrl) && (
+                     <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
+                       <CheckCircle2 size={12} />
+                       Valid image URL
+                     </p>
+                   )}
+                 </div>
+                 
+                 {/* Preview */}
+                 {formData.imageUrl && !imageError && (
+                   <div className="w-full md:w-48 h-32 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 relative group">
+                     <img 
+                       src={formData.imageUrl} 
+                       alt="Preview" 
+                       className="w-full h-full object-cover"
+                       onError={(e) => {
+                         setImageError('Failed to load image. Please check the URL.');
+                         (e.target as HTMLImageElement).style.display = 'none';
+                       }}
+                       onLoad={() => setImageError(null)}
+                     />
+                     <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">Preview</div>
+                   </div>
+                 )}
                </div>
              </div>
 
@@ -531,6 +618,8 @@ const TeamManager: React.FC = () => {
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<TeamMember>>({});
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
 
   const fetchTeam = async () => {
     const data = await CMS.getTeamMembers();
@@ -587,14 +676,105 @@ const TeamManager: React.FC = () => {
              </div>
              
              <div>
-               <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Photo URL</label>
-               <div className="flex flex-col sm:flex-row gap-4">
-                   <input className="w-full p-3 border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all duration-150" value={formData.photoUrl || ''} onChange={e => setFormData({...formData, photoUrl: e.target.value})} placeholder="https://..." />
-                   {formData.photoUrl && (
-                      <div className="w-16 h-16 sm:w-12 sm:h-12 rounded-full overflow-hidden border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-slate-800 flex-shrink-0">
-                          <img src={formData.photoUrl} alt="Preview" className="w-full h-full object-cover" />
-                      </div>
+               <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Photo</label>
+               <div className="space-y-3">
+                 {/* File Upload */}
+                 <label className="cursor-pointer">
+                   <input 
+                     type="file" 
+                     accept="image/*"
+                     className="hidden"
+                     onChange={async (e) => {
+                       const file = e.target.files?.[0];
+                       if (!file) return;
+                       
+                       if (file.size > 10 * 1024 * 1024) {
+                         setPhotoError('Image size must be less than 10MB');
+                         return;
+                       }
+                       
+                       setUploadingPhoto(true);
+                       setPhotoError(null);
+                       try {
+                         const url = await uploadImage(file, 'team');
+                         setFormData({...formData, photoUrl: url});
+                       } catch (error) {
+                         setPhotoError('Failed to upload image. Please try again or use a URL instead.');
+                         console.error('Upload error:', error);
+                       } finally {
+                         setUploadingPhoto(false);
+                       }
+                     }}
+                     disabled={uploadingPhoto}
+                   />
+                   <div className={`w-full p-4 border-2 border-dashed rounded-xl transition-all duration-150 ${
+                     uploadingPhoto 
+                       ? 'border-google-blue bg-google-blue/10' 
+                       : 'border-slate-300 dark:border-slate-600 hover:border-google-blue dark:hover:border-google-blue bg-slate-50 dark:bg-slate-800/50'
+                   }`}>
+                     <div className="flex items-center justify-center gap-3">
+                       {uploadingPhoto ? (
+                         <>
+                           <Loader2 className="animate-spin text-google-blue" size={20} />
+                           <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Uploading...</span>
+                         </>
+                       ) : (
+                         <>
+                           <UploadCloud className="text-slate-400" size={20} />
+                           <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Upload Photo</span>
+                         </>
+                       )}
+                     </div>
+                   </div>
+                 </label>
+                 
+                 {/* URL Input */}
+                 <div className="relative">
+                   <div className="flex items-center gap-2 mb-2">
+                     <span className="text-xs font-medium text-slate-500 dark:text-slate-400">OR</span>
+                     <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
+                   </div>
+                   <input 
+                     className={`w-full p-3 border rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all duration-150 ${
+                       photoError && !formData.photoUrl
+                         ? 'border-red-300 dark:border-red-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white'
+                         : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white'
+                     }`}
+                     value={formData.photoUrl || ''} 
+                     onChange={(e) => {
+                       const url = e.target.value;
+                       setFormData({...formData, photoUrl: url});
+                       if (url && !isValidImageUrl(url) && !url.startsWith('data:')) {
+                         setPhotoError('Please enter a valid image URL');
+                       } else {
+                         setPhotoError(null);
+                       }
+                     }} 
+                     placeholder="https://example.com/photo.jpg"
+                   />
+                   {photoError && (
+                     <p className="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center gap-1">
+                       <AlertCircle size={12} />
+                       {photoError}
+                     </p>
                    )}
+                 </div>
+                 
+                 {/* Preview */}
+                 {formData.photoUrl && !photoError && (
+                   <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-slate-800 flex-shrink-0">
+                     <img 
+                       src={formData.photoUrl} 
+                       alt="Preview" 
+                       className="w-full h-full object-cover"
+                       onError={(e) => {
+                         setPhotoError('Failed to load image. Please check the URL.');
+                         (e.target as HTMLImageElement).style.display = 'none';
+                       }}
+                       onLoad={() => setPhotoError(null)}
+                     />
+                   </div>
+                 )}
                </div>
              </div>
            </div>
@@ -640,6 +820,8 @@ const PartnersManager: React.FC = () => {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Partner>>({});
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [logoError, setLogoError] = useState<string | null>(null);
 
   const fetchPartners = async () => {
     const data = await CMS.getPartners();
@@ -707,18 +889,106 @@ const PartnersManager: React.FC = () => {
              </div>
              
              <div>
-               <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Logo URL</label>
-               <div className="flex flex-col sm:flex-row gap-4 items-start">
-                   <div className="flex-grow w-full">
-                       <input className="w-full p-3 border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all duration-150" value={formData.logoUrl || ''} onChange={e => setFormData({...formData, logoUrl: e.target.value})} placeholder="https://..." />
-                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Direct link to logo image</p>
+               <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Logo</label>
+               <div className="space-y-3">
+                 {/* File Upload */}
+                 <label className="cursor-pointer">
+                   <input 
+                     type="file" 
+                     accept="image/*"
+                     className="hidden"
+                     onChange={async (e) => {
+                       const file = e.target.files?.[0];
+                       if (!file) return;
+                       
+                       if (file.size > 10 * 1024 * 1024) {
+                         setLogoError('Image size must be less than 10MB');
+                         return;
+                       }
+                       
+                       setUploadingLogo(true);
+                       setLogoError(null);
+                       try {
+                         const url = await uploadImage(file, 'partners');
+                         setFormData({...formData, logoUrl: url});
+                       } catch (error) {
+                         setLogoError('Failed to upload image. Please try again or use a URL instead.');
+                         console.error('Upload error:', error);
+                       } finally {
+                         setUploadingLogo(false);
+                       }
+                     }}
+                     disabled={uploadingLogo}
+                   />
+                   <div className={`w-full p-4 border-2 border-dashed rounded-xl transition-all duration-150 ${
+                     uploadingLogo 
+                       ? 'border-google-blue bg-google-blue/10' 
+                       : 'border-slate-300 dark:border-slate-600 hover:border-google-blue dark:hover:border-google-blue bg-slate-50 dark:bg-slate-800/50'
+                   }`}>
+                     <div className="flex items-center justify-center gap-3">
+                       {uploadingLogo ? (
+                         <>
+                           <Loader2 className="animate-spin text-google-blue" size={20} />
+                           <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Uploading...</span>
+                         </>
+                       ) : (
+                         <>
+                           <UploadCloud className="text-slate-400" size={20} />
+                           <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Upload Logo</span>
+                         </>
+                       )}
+                     </div>
                    </div>
-                   {formData.logoUrl && (
-                      <div className="w-24 h-24 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex-shrink-0 relative group flex items-center justify-center">
-                          <img src={formData.logoUrl} alt="Preview" className="max-w-full max-h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">Preview</div>
-                      </div>
+                 </label>
+                 
+                 {/* URL Input */}
+                 <div className="relative">
+                   <div className="flex items-center gap-2 mb-2">
+                     <span className="text-xs font-medium text-slate-500 dark:text-slate-400">OR</span>
+                     <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
+                   </div>
+                   <input 
+                     className={`w-full p-3 border rounded-xl focus:ring-2 focus:ring-google-blue/20 focus:border-google-blue outline-none transition-all duration-150 ${
+                       logoError && !formData.logoUrl
+                         ? 'border-red-300 dark:border-red-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white'
+                         : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 text-slate-900 dark:text-white'
+                     }`}
+                     value={formData.logoUrl || ''} 
+                     onChange={(e) => {
+                       const url = e.target.value;
+                       setFormData({...formData, logoUrl: url});
+                       if (url && !isValidImageUrl(url) && !url.startsWith('data:')) {
+                         setLogoError('Please enter a valid image URL');
+                       } else {
+                         setLogoError(null);
+                       }
+                     }} 
+                     placeholder="https://example.com/logo.png"
+                   />
+                   {logoError && (
+                     <p className="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center gap-1">
+                       <AlertCircle size={12} />
+                       {logoError}
+                     </p>
                    )}
+                 </div>
+                 
+                 {/* Preview */}
+                 {formData.logoUrl && !logoError && (
+                   <div className="w-32 h-32 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex-shrink-0 relative group flex items-center justify-center p-4">
+                     <img 
+                       src={formData.logoUrl} 
+                       alt="Preview" 
+                       className="max-w-full max-h-full object-contain"
+                       onError={(e) => {
+                         setLogoError('Failed to load image. Please check the URL.');
+                         (e.target as HTMLImageElement).style.display = 'none';
+                       }}
+                       onLoad={() => setLogoError(null)}
+                     />
+                     <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">Preview</div>
+                   </div>
+                 )}
                </div>
              </div>
 
