@@ -516,31 +516,47 @@ const EventsManager: React.FC = () => {
                    )}
                  </div>
                  
-                 {/* Preview */}
-                 {formData.imageUrl && !imageError && (
+                 {/* Preview - Show even if broken */}
+                 {formData.imageUrl && (
                    <div className="w-full md:w-48 h-32 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 relative group">
                      <img 
                        src={formData.imageUrl} 
                        alt="Preview" 
                        className="w-full h-full object-cover"
                        onError={(e) => {
-                         setImageError('Failed to load image. This URL may have expired. Please upload a new image or use a permanent hosting service.');
-                         (e.target as HTMLImageElement).style.display = 'none';
+                         const img = e.target as HTMLImageElement;
+                         img.style.display = 'none';
+                         if (!imageError) {
+                           setImageError('Image URL expired or broken. Please upload a new image to replace it.');
+                         }
                        }}
-                       onLoad={() => setImageError(null)}
+                       onLoad={() => {
+                         setImageError(null);
+                       }}
                      />
-                     <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">Preview</div>
-                     {isTemporaryImageUrl(formData.imageUrl) && (
-                       <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1">
-                         <AlertCircle size={10} />
-                         May Expire
+                     {imageError && (
+                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-50 dark:bg-red-900/20 p-4 text-center">
+                         <AlertCircle className="text-red-500 mb-2" size={24} />
+                         <p className="text-xs text-red-600 dark:text-red-400 font-bold">Image Broken</p>
+                         <p className="text-xs text-red-500 dark:text-red-500 mt-1">Upload new image above</p>
                        </div>
+                     )}
+                     {!imageError && (
+                       <>
+                         <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">Preview</div>
+                         {isTemporaryImageUrl(formData.imageUrl) && (
+                           <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1">
+                             <AlertCircle size={10} />
+                             May Expire
+                           </div>
+                         )}
+                       </>
                      )}
                    </div>
                  )}
                  
-                 {/* Re-host button for temporary URLs */}
-                 {formData.imageUrl && isTemporaryImageUrl(formData.imageUrl) && !imageError && (
+                 {/* Re-host button for temporary URLs - Try even if broken */}
+                 {formData.imageUrl && isTemporaryImageUrl(formData.imageUrl) && (
                    <button
                      type="button"
                      onClick={async () => {
@@ -548,30 +564,46 @@ const EventsManager: React.FC = () => {
                        setImageError(null);
                        try {
                          const newUrl = await rehostImage(formData.imageUrl!, 'events');
-                         setFormData({...formData, imageUrl: newUrl});
-                         alert('Image re-hosted successfully! It will now work permanently.');
+                         if (newUrl && newUrl !== formData.imageUrl) {
+                           setFormData({...formData, imageUrl: newUrl});
+                           alert('✅ Image re-hosted successfully! It will now work permanently.');
+                         } else {
+                           setImageError('Could not re-host image. The URL may be completely expired. Please upload the image file instead.');
+                         }
                        } catch (error) {
-                         setImageError('Failed to re-host image. Please upload it manually.');
+                         setImageError('Failed to re-host image. The URL may be expired. Please upload the image file manually.');
                          console.error('Re-host error:', error);
                        } finally {
                          setUploadingImage(false);
                        }
                      }}
                      disabled={uploadingImage}
-                     className="w-full px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                     className={`w-full px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 ${
+                       imageError 
+                         ? 'bg-red-500 hover:bg-red-600 text-white' 
+                         : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                     }`}
                    >
                      {uploadingImage ? (
                        <>
                          <Loader2 className="animate-spin" size={16} />
-                         Re-hosting...
+                         Trying to Re-host...
                        </>
                      ) : (
                        <>
                          <UploadCloud size={16} />
-                         Re-host Image (Make Permanent)
+                         {imageError ? 'Try Re-hosting (May Not Work)' : 'Re-host Image (Make Permanent)'}
                        </>
                      )}
                    </button>
+                 )}
+                 
+                 {/* Show current URL for reference */}
+                 {formData.imageUrl && (
+                   <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                     <p className="text-xs text-slate-500 dark:text-slate-400 mb-1 font-bold">Current Image URL:</p>
+                     <p className="text-xs text-slate-600 dark:text-slate-300 break-all font-mono">{formData.imageUrl}</p>
+                   </div>
                  )}
                </div>
              </div>
