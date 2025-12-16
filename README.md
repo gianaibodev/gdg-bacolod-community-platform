@@ -1,7 +1,7 @@
 <div align="center">
   <h1>GDG Bacolod Community Platform</h1>
   <p>
-    Official community platform for Google Developer Group (GDG) Bacolod – events, team, partners, and a full certificate issuing system in one modern web app.
+    Community platform concept for Google Developer Group (GDG) Bacolod – events, team, partners, and a full certificate issuing system in one modern web app.
   </p>
 </div>
 
@@ -9,7 +9,8 @@
 
 ## Overview
 
-The **GDG Bacolod Community Platform** is a production-ready web application built for the GDG Bacolod chapter.  
+The **GDG Bacolod Community Platform** is a production-ready web application that I designed and built specifically for the GDG Bacolod chapter.  
+It is **not an official GDG property**, but a personal project that the organizers are free to adopt if and when they choose.
 It combines:
 
 - A public marketing site for events, team, and partners  
